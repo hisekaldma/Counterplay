@@ -89,7 +89,7 @@ struct SmallSetTests {
             #expect(set3.description == "[.lumber, .wool]")
         }
     }
-    
+
     @Suite("Inserting/removing")
     struct InsertAndRemove {
         @Test("Insert element")
@@ -98,7 +98,7 @@ struct SmallSetTests {
             set.insert(.wool)
             #expect(set == [.lumber, .wool])
         }
-        
+
         @Test("Insert element multiple times")
         func insertMultipleTimes() async throws {
             var set: SmallSet<Resource> = [.lumber]
@@ -107,14 +107,14 @@ struct SmallSetTests {
             set.insert(.wool)
             #expect(set == [.lumber, .wool])
         }
-        
+
         @Test("Remove element")
         func remove() async throws {
             var set: SmallSet<Resource> = [.lumber, .wool]
             set.remove(.wool)
             #expect(set == [.lumber])
         }
-        
+
         @Test("Remove element multiple times")
         func removeMultipleTimes() async throws {
             var set: SmallSet<Resource> = [.lumber, .wool]
@@ -123,48 +123,48 @@ struct SmallSetTests {
             set.remove(.wool)
             #expect(set == [.lumber])
         }
-        
+
         @Test("Insert with return value")
         func insertWithReturn() async throws {
             var set: SmallSet<Resource> = [.lumber]
-            
+
             // Insert new element
             let (inserted1, memberAfterInsert1) = set.insert(.wool)
             #expect(inserted1 == true)
             #expect(memberAfterInsert1 == .wool)
             #expect(set == [.lumber, .wool])
-            
+
             // Insert existing element
             let (inserted2, memberAfterInsert2) = set.insert(.lumber)
             #expect(inserted2 == false)
             #expect(memberAfterInsert2 == .lumber)
             #expect(set == [.lumber, .wool])
         }
-        
+
         @Test("Remove with return value")
         func removeWithReturn() async throws {
             var set: SmallSet<Resource> = [.lumber, .wool]
-            
+
             // Remove existing element
             let removed1: Resource? = set.remove(.wool)
             #expect(removed1 == .wool)
             #expect(set == [.lumber])
-            
+
             // Remove non-existent element
             let removed2: Resource? = set.remove(.grain)
             #expect(removed2 == nil)
             #expect(set == [.lumber])
         }
-        
+
         @Test("Update with element")
         func update() async throws {
             var set: SmallSet<Resource> = [.lumber]
-            
+
             // Update with new element
             let result1 = set.update(with: .wool)
             #expect(result1 == nil)
             #expect(set == [.lumber, .wool])
-            
+
             // Update with existing element
             let result2 = set.update(with: .lumber)
             #expect(result2 == .lumber)
@@ -421,27 +421,30 @@ struct SmallSetTests {
             let set3: SmallSet<Resource> = [.grain, .wool]
             let set4: SmallSet<Resource> = [.grain, .wool, .lumber]
             #expect(set1.combinations(of: 3) == [])
-            #expect(set2.combinations(of: 3) == [
-                [.grain: 3],
-            ])
-            #expect(set3.combinations(of: 3) == [
-                [.grain: 3],
-                [.grain: 2, .wool: 1],
-                [.grain: 1, .wool: 2],
-                [.wool: 3],
-            ])
-            #expect(set4.combinations(of: 3) == [
-                [.grain: 3],
-                [.wool: 1, .grain: 2],
-                [.wool: 2, .grain: 1],
-                [.wool: 3],
-                [.lumber: 1, .grain: 2],
-                [.lumber: 1, .wool: 1, .grain: 1],
-                [.lumber: 1, .wool: 2],
-                [.lumber: 2, .grain: 1],
-                [.lumber: 2, .wool: 1],
-                [.lumber: 3],
-            ])
+            #expect(
+                set2.combinations(of: 3) == [
+                    [.grain: 3]
+                ])
+            #expect(
+                set3.combinations(of: 3) == [
+                    [.grain: 3],
+                    [.grain: 2, .wool: 1],
+                    [.grain: 1, .wool: 2],
+                    [.wool: 3],
+                ])
+            #expect(
+                set4.combinations(of: 3) == [
+                    [.grain: 3],
+                    [.wool: 1, .grain: 2],
+                    [.wool: 2, .grain: 1],
+                    [.wool: 3],
+                    [.lumber: 1, .grain: 2],
+                    [.lumber: 1, .wool: 1, .grain: 1],
+                    [.lumber: 1, .wool: 2],
+                    [.lumber: 2, .grain: 1],
+                    [.lumber: 2, .wool: 1],
+                    [.lumber: 3],
+                ])
         }
 
         @Test("Combinations of zero")

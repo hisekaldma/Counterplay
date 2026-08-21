@@ -143,9 +143,10 @@ struct TileTests {
                 .init(5, 6): "c",
             ]
             #expect(tile.normalized().map(\.cell) == ["a", "b", "c"])
-            #expect(Array(tile.normalized().coordinates) == [
-                .init(1, 0), .init(0, 0), .init(0, 1),
-            ])
+            #expect(
+                Array(tile.normalized().coordinates) == [
+                    .init(1, 0), .init(0, 0), .init(0, 1),
+                ])
         }
 
         @Test("A cell can be paired with its image under a rotation")
@@ -392,12 +393,14 @@ struct TileTests {
             var grid: SquareGrid<4, 4, Int?> = .init(repeating: nil)
             let tile: Polyomino<4, Empty> = [.init(0, 0), .init(1, 0), .init(0, 1)]
             grid.place(tile, at: .init(1, 1), with: 7)
-            #expect(grid == .init(cells: [
-                [nil, nil, nil, nil],
-                [nil, 7, 7, nil],
-                [nil, 7, nil, nil],
-                [nil, nil, nil, nil],
-            ]))
+            #expect(
+                grid
+                    == .init(cells: [
+                        [nil, nil, nil, nil],
+                        [nil, 7, 7, nil],
+                        [nil, 7, nil, nil],
+                        [nil, nil, nil, nil],
+                    ]))
         }
 
         @Test("Placing carries the tile's own cells")
@@ -405,11 +408,13 @@ struct TileTests {
             var grid: SquareGrid<3, 3, Int> = .init(repeating: 0)
             let tile: Polyomino<4, Int> = [.init(0, 0): 1, .init(1, 0): 2]
             grid.place(tile, at: .init(1, 1))
-            #expect(grid == .init(cells: [
-                [0, 0, 0],
-                [0, 1, 2],
-                [0, 0, 0],
-            ]))
+            #expect(
+                grid
+                    == .init(cells: [
+                        [0, 0, 0],
+                        [0, 1, 2],
+                        [0, 0, 0],
+                    ]))
         }
 
         @Test("Placement does not depend on the tile's cell order")

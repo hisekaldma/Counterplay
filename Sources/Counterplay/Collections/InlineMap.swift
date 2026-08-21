@@ -212,8 +212,9 @@ extension InlineMap {
     /// values transformed by the given closure.
     @inlinable
     public func mapValues<T>(_ transform: (Value) -> T) -> InlineMap<size, Key, T> {
-        return InlineMap<size, Key, T>(storage: .init({ i in
-            transform(self.storage[i])
-        }))
+        InlineMap<size, Key, T>(
+            storage: .init({ i in
+                transform(self.storage[i])
+            }))
     }
 }

@@ -15,11 +15,11 @@ extension Resource: CustomDebugStringConvertible {
     var debugDescription: String {
         switch self {
         case .lumber: ".lumber"
-        case .wool:   ".wool"
-        case .grain:  ".grain"
-        case .brick:  ".brick"
-        case .ore:    ".ore"
-        case .gold:   ".gold"
+        case .wool: ".wool"
+        case .grain: ".grain"
+        case .brick: ".brick"
+        case .ore: ".ore"
+        case .gold: ".gold"
         case .silver: ".silver"
         case .bronze: ".bronze"
         }

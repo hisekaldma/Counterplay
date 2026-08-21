@@ -102,11 +102,13 @@ struct RunnerTests {
 
         @Test("It is not the human player's turn when the game is finished")
         func isNotPlayerTurnWhenFinished() {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [.player1, .player1, .player1],
-                [.player2, .player2, nil],
-                [nil, nil, nil],
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [.player1, .player1, .player1],
+                    [.player2, .player2, nil],
+                    [nil, nil, nil],
+                ])
             let runner = Runner(game: game, player: .player1)
 
             #expect(runner.isPlayerTurn == false)
@@ -133,11 +135,13 @@ struct RunnerTests {
         @Test("Plays to the end of the game")
         func playsToGameEnd() async {
             let runner = Runner(
-                game: TicTacToe(players: [.player1, .player2, .player3], currentPlayer: .player1, board: [
-                    [.player1, .player1, nil],
-                    [.player2, .player2, nil],
-                    [.player3, .player3, nil],
-                ]),
+                game: TicTacToe(
+                    players: [.player1, .player2, .player3], currentPlayer: .player1,
+                    board: [
+                        [.player1, .player1, nil],
+                        [.player2, .player2, nil],
+                        [.player3, .player3, nil],
+                    ]),
                 player: .player2
             )
 
@@ -172,11 +176,13 @@ struct RunnerTests {
 
         @Test("Playing does nothing when the game is finished")
         func playDoesNothingWhenFinished() async {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player2, board: [
-                [.player1, .player1, .player1],
-                [.player2, .player2, nil],
-                [nil, nil, nil],
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player2,
+                board: [
+                    [.player1, .player1, .player1],
+                    [.player2, .player2, nil],
+                    [nil, nil, nil],
+                ])
             let runner = Runner(game: game, player: .player1, budgetPerTurn: fastBudget)
 
             await runner.play()
@@ -239,11 +245,13 @@ struct RunnerTests {
         @Test("Making a move plays to the end of the game")
         func makeMovePlaysToGameEnd() async {
             let runner = Runner(
-                game: TicTacToe(players: [.player1, .player2, .player3], currentPlayer: .player1, board: [
-                    [.player1, .player1, nil],
-                    [.player2, .player2, nil],
-                    [.player3, .player3, nil],
-                ]),
+                game: TicTacToe(
+                    players: [.player1, .player2, .player3], currentPlayer: .player1,
+                    board: [
+                        [.player1, .player1, nil],
+                        [.player2, .player2, nil],
+                        [.player3, .player3, nil],
+                    ]),
                 player: .player1
             )
 
@@ -269,11 +277,13 @@ struct RunnerTests {
 
         @Test("Making a move does nothing when the game is finished")
         func makeMoveWhenFinished() async {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [.player1, .player1, .player1],
-                [.player2, .player2, nil],
-                [nil, nil, nil],
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [.player1, .player1, .player1],
+                    [.player2, .player2, nil],
+                    [nil, nil, nil],
+                ])
             let runner = Runner(game: game, player: .player1, budgetPerTurn: fastBudget)
 
             await runner.makeMove(TicTacToe.Move(x: 2, y: 1))
@@ -298,7 +308,7 @@ struct RunnerTests {
             #expect(runner.game.currentPlayer == .player2)
             #expect(runner.game.moveCount == 0)
 
-            task.cancel()  // Cancel after 50 ms
+            task.cancel() // Cancel after 50 ms
             await task.value
 
             #expect(runner.isPlaying == false)

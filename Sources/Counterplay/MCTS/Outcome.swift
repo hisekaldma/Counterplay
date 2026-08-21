@@ -26,9 +26,9 @@ extension Outcome {
     /// - `.estimate(v)` → `v`, clamped to `0...1`
     public var reward: Double {
         switch self {
-        case .win:                 return 1
-        case .loss:                return 0
-        case .tie:                 return 0.5
+        case .win: return 1
+        case .loss: return 0
+        case .tie: return 0.5
         case .estimate(let reward): return reward.isNaN ? 0.5 : max(min(reward, 1), 0)
         }
     }

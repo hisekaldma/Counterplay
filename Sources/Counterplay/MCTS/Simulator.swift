@@ -30,7 +30,8 @@ import Observation
 /// isolation region it was created in. The game simulations are run concurrently on the global
 /// concurrent executor.
 @Observable
-public final class Simulator<Game, Setup, Result> where
+public final class Simulator<Game, Setup, Result>
+where
     Game: GameModel,
     Setup: GameSetup,
     Result: GameResult,
@@ -39,7 +40,7 @@ public final class Simulator<Game, Setup, Result> where
 {
     /// The simulation of a single game match.
     public struct SimulatedGame: Identifiable {
-        public let id:    Int
+        public let id: Int
         public let setup: Setup
         public var state: SimulationState
 

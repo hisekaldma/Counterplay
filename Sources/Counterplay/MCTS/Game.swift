@@ -29,7 +29,7 @@ public nonisolated protocol Game: Sendable {
     ///
     /// - Important: Must always be a member of `players`.
     var currentPlayer: Player { get }
-    
+
     /// The moves that the current player can make.
     ///
     /// - Important: Must not be empty if `isFinished` is `false`.

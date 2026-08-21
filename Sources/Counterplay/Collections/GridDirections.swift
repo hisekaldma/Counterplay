@@ -56,13 +56,13 @@ public enum SquareDirection: GridDirection {
     @inlinable
     public var offset: SquareCoordinate {
         switch self {
-        case .north:     .init( 0, -1)
-        case .northEast: .init( 1, -1)
-        case .east:      .init( 1,  0)
-        case .southEast: .init( 1,  1)
-        case .south:     .init( 0,  1)
-        case .southWest: .init(-1,  1)
-        case .west:      .init(-1,  0)
+        case .north: .init(0, -1)
+        case .northEast: .init(1, -1)
+        case .east: .init(1, 0)
+        case .southEast: .init(1, 1)
+        case .south: .init(0, 1)
+        case .southWest: .init(-1, 1)
+        case .west: .init(-1, 0)
         case .northWest: .init(-1, -1)
         }
     }
@@ -71,13 +71,13 @@ public enum SquareDirection: GridDirection {
     @inlinable
     public var opposite: Self {
         switch self {
-        case .north:     .south
+        case .north: .south
         case .northEast: .southWest
-        case .east:      .west
+        case .east: .west
         case .southEast: .northWest
-        case .south:     .north
+        case .south: .north
         case .southWest: .northEast
-        case .west:      .east
+        case .west: .east
         case .northWest: .southEast
         }
     }
@@ -107,12 +107,12 @@ public enum PointyHexDirection: GridDirection {
     @inlinable
     public var offset: HexCoordinate {
         switch self {
-        case .east:      .init( 1,  0)
-        case .southEast: .init( 0,  1)
-        case .southWest: .init(-1,  1)
-        case .west:      .init(-1,  0)
-        case .northWest: .init( 0, -1)
-        case .northEast: .init( 1, -1)
+        case .east: .init(1, 0)
+        case .southEast: .init(0, 1)
+        case .southWest: .init(-1, 1)
+        case .west: .init(-1, 0)
+        case .northWest: .init(0, -1)
+        case .northEast: .init(1, -1)
         }
     }
 
@@ -120,10 +120,10 @@ public enum PointyHexDirection: GridDirection {
     @inlinable
     public var opposite: Self {
         switch self {
-        case .east:      .west
+        case .east: .west
         case .southEast: .northWest
         case .southWest: .northEast
-        case .west:      .east
+        case .west: .east
         case .northWest: .southEast
         case .northEast: .southWest
         }
@@ -152,12 +152,12 @@ public enum FlatHexDirection: GridDirection {
     @inlinable
     public var offset: HexCoordinate {
         switch self {
-        case .north:     .init( 0, -1)
-        case .northEast: .init( 1, -1)
-        case .southEast: .init( 1,  0)
-        case .south:     .init( 0,  1)
-        case .southWest: .init(-1,  1)
-        case .northWest: .init(-1,  0)
+        case .north: .init(0, -1)
+        case .northEast: .init(1, -1)
+        case .southEast: .init(1, 0)
+        case .south: .init(0, 1)
+        case .southWest: .init(-1, 1)
+        case .northWest: .init(-1, 0)
         }
     }
 
@@ -165,10 +165,10 @@ public enum FlatHexDirection: GridDirection {
     @inlinable
     public var opposite: Self {
         switch self {
-        case .north:     .south
+        case .north: .south
         case .northEast: .southWest
         case .southEast: .northWest
-        case .south:     .north
+        case .south: .north
         case .southWest: .northEast
         case .northWest: .southEast
         }

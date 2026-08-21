@@ -204,7 +204,7 @@ extension SmallCountedSet: AdditiveArithmetic {
     public static var zero: SmallCountedSet<Element> {
         [:]
     }
-    
+
     @inlinable
     public static func + (lhs: Self, rhs: Self) -> Self {
         let max = Element.CountedSetStorage(repeating: .max)
@@ -451,9 +451,10 @@ extension SmallCountedSet: Collection {
 extension SIMD where Scalar: FixedWidthInteger {
     @inlinable
     internal var nonzeroScalarCount: Int {
-        Int(Self(repeating: 1)
-            .replacing(with: 0, where: self .== .zero)
-            .wrappedSum())
+        Int(
+            Self(repeating: 1)
+                .replacing(with: 0, where: self .== .zero)
+                .wrappedSum())
     }
 
     @inlinable

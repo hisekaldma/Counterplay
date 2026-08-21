@@ -10,11 +10,13 @@ struct MCTSTests {
 
         @Test("Initialize with default parameters")
         func initWithDefaults() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [nil, nil, nil],
-                [nil, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                ])
             let mcts = MCTS(game: game)
 
             #expect(mcts.configuration.maxPlayoutDepth == 100)
@@ -23,11 +25,13 @@ struct MCTSTests {
 
         @Test("Initialize with custom parameters")
         func initWithCustomParameters() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [nil, nil, nil],
-                [nil, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                ])
             let mcts = MCTS(game: game, configuration: .init(maxPlayoutDepth: 50, explorationBias: 1))
 
             #expect(mcts.configuration.maxPlayoutDepth == 50)
@@ -37,11 +41,13 @@ struct MCTSTests {
         @Test("The game must not be finished")
         func rejectFinishedGame() async {
             await #expect(processExitsWith: .failure) {
-                let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                    [.player1, .player1, .player1],
-                    [.player2, .player2, nil],
-                    [nil, nil, nil]
-                ])
+                let game = TicTacToe(
+                    players: [.player1, .player2], currentPlayer: .player1,
+                    board: [
+                        [.player1, .player1, .player1],
+                        [.player2, .player2, nil],
+                        [nil, nil, nil],
+                    ])
                 _ = MCTS(game: game)
             }
         }
@@ -88,11 +94,13 @@ struct MCTSTests {
 
         @Test("Single iteration")
         func singleIteration() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [nil, nil, nil],
-                [nil, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                ])
             let mcts = MCTS(game: game)
 
             try mcts.iterate()
@@ -104,11 +112,13 @@ struct MCTSTests {
 
         @Test("Search within an iteration budget")
         func searchWithIterationBudget() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [nil, nil, nil],
-                [nil, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                ])
             let mcts = MCTS(game: game)
 
             try mcts.search(budget: .iterations(100))
@@ -120,11 +130,13 @@ struct MCTSTests {
 
         @Test("Search within a time budget")
         func searchWithTimeBudget() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [nil, nil, nil],
-                [nil, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                ])
             let mcts = MCTS(game: game)
 
             try mcts.search(budget: .time(.milliseconds(100)))
@@ -154,11 +166,13 @@ struct MCTSTests {
 
         @Test("Searching again continues the same tree")
         func searchingAgainContinuesTheTree() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [nil, nil, nil],
-                [nil, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                ])
             let mcts = MCTS(game: game)
 
             try mcts.search(budget: .iterations(500))
@@ -195,11 +209,13 @@ struct MCTSTests {
         @Test("Best move for obvious win")
         func bestMoveForObviousWin() async throws {
             // Player1 can win by placing at (2, 0)
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [.player1, .player1, nil],
-                [.player2, .player2, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [.player1, .player1, nil],
+                    [.player2, .player2, nil],
+                    [nil, nil, nil],
+                ])
 
             let move = try MCTS.bestMove(for: game, budget: .iterations(1000))
 
@@ -210,11 +226,13 @@ struct MCTSTests {
         @Test("Best move for preventing opponent win")
         func bestMoveForBlockingOpponentWin() async throws {
             // Player2 can win on next turn if Player1 doesn't block
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [.player2, .player2, nil],
-                [.player1, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [.player2, .player2, nil],
+                    [.player1, nil, nil],
+                    [nil, nil, nil],
+                ])
 
             let move = try MCTS.bestMove(for: game, budget: .iterations(1000))
 
@@ -228,11 +246,13 @@ struct MCTSTests {
 
         @Test("Moves list contains visit counts")
         func movesListContainsVisitCounts() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [nil, nil, nil],
-                [nil, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                ])
 
             let mcts = MCTS(game: game)
             try mcts.search(budget: .iterations(500))
@@ -253,11 +273,13 @@ struct MCTSTests {
 
         @Test("Moves list contains all possible moves after sufficient iterations")
         func movesListContainsAllPossibleMoves() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [.player1, nil, nil],
-                [nil, .player2, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [.player1, nil, nil],
+                    [nil, .player2, nil],
+                    [nil, nil, nil],
+                ])
 
             let mcts = MCTS(game: game)
             try mcts.search(budget: .iterations(10_000))
@@ -269,11 +291,13 @@ struct MCTSTests {
 
         @Test("Best move has highest visit count")
         func bestMoveHasHighestVisitCount() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [nil, nil, nil],
-                [nil, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                ])
 
             let mcts = MCTS(game: game)
             try mcts.search(budget: .iterations(1000))
@@ -295,11 +319,13 @@ struct MCTSTests {
 
         @Test("Finds winning move with single determinization")
         func singleDeterminization() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [.player1, .player1, nil],
-                [.player2, .player2, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [.player1, .player1, nil],
+                    [.player2, .player2, nil],
+                    [nil, nil, nil],
+                ])
 
             let move = try MCTS.bestMove(
                 for: game,
@@ -313,11 +339,13 @@ struct MCTSTests {
 
         @Test("Finds winning move with multiple determinizations")
         func multipleDeterminizations() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [.player1, .player1, nil],
-                [.player2, .player2, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [.player1, .player1, nil],
+                    [.player2, .player2, nil],
+                    [nil, nil, nil],
+                ])
 
             let move = try MCTS.bestMove(
                 for: game,
@@ -331,11 +359,13 @@ struct MCTSTests {
 
         @Test("Finds winning move with concurrent determinizations")
         func concurrentDeterminizations() async throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [.player1, .player1, nil],
-                [.player2, .player2, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [.player1, .player1, nil],
+                    [.player2, .player2, nil],
+                    [nil, nil, nil],
+                ])
 
             let move = try await MCTS.bestMove(
                 for: game,
@@ -371,11 +401,13 @@ struct MCTSTests {
         @Test("1 player")
         func onePlayer() async throws {
             // One player game - player just needs to find winning moves
-            let game = TicTacToe(players: [.player1], currentPlayer: .player1, board: [
-                [.player1, .player1, nil],
-                [nil, nil, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1], currentPlayer: .player1,
+                board: [
+                    [.player1, .player1, nil],
+                    [nil, nil, nil],
+                    [nil, nil, nil],
+                ])
 
             let move = try MCTS.bestMove(
                 for: game,
@@ -390,11 +422,13 @@ struct MCTSTests {
         @Test("2 players")
         func twoPlayers() async throws {
             // Standard two-player game
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1, board: [
-                [.player1, .player1, nil],
-                [.player2, .player2, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2], currentPlayer: .player1,
+                board: [
+                    [.player1, .player1, nil],
+                    [.player2, .player2, nil],
+                    [nil, nil, nil],
+                ])
 
             let move = try MCTS.bestMove(
                 for: game,
@@ -409,11 +443,13 @@ struct MCTSTests {
         @Test("3 players")
         func threePlayers() async throws {
             // Three-player game with winning opportunity
-            let game = TicTacToe(players: [.player1, .player2, .player3], currentPlayer: .player1, board: [
-                [.player1, .player1, nil],
-                [.player2, .player3, nil],
-                [nil, nil, nil]
-            ])
+            let game = TicTacToe(
+                players: [.player1, .player2, .player3], currentPlayer: .player1,
+                board: [
+                    [.player1, .player1, nil],
+                    [.player2, .player3, nil],
+                    [nil, nil, nil],
+                ])
 
             let move = try MCTS.bestMove(
                 for: game,

@@ -8,7 +8,7 @@ struct DieTests {
         let die = Die(faces: [1, 2, 3, 4, 5, 6])
         #expect(die.faces == [1, 2, 3, 4, 5, 6])
     }
-    
+
     @Test("Initialize die with range")
     func initWithRange() {
         let die = Die(range: 1...6)
@@ -39,7 +39,7 @@ struct DieTests {
         let result = die.roll()
         #expect(die.faces.contains(result))
     }
-    
+
     @Test("Roll multiple times returns valid faces")
     func rollMultipleTimes() {
         let die = Die(faces: [1, 2, 3, 4, 5, 6])
@@ -49,14 +49,14 @@ struct DieTests {
             #expect(die.faces.contains(result))
         }
     }
-    
+
     @Test("Roll zero times returns empty array")
     func rollZeroTimes() {
         let die = Die(faces: [1, 2, 3, 4, 5, 6])
         let results = die.roll(count: 0)
         #expect(results.isEmpty)
     }
-    
+
     @Test("Standard dice")
     func standardD4() {
         #expect(Die.d4.faces == Array(1...4))

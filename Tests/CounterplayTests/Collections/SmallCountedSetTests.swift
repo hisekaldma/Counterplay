@@ -12,7 +12,7 @@ struct SmallCountedSetTests {
             let set: SmallCountedSet<Resource> = .init()
             #expect(set.isEmpty == true)
         }
-        
+
         @Test("Initialize with sequence")
         func initWithSequence() {
             let set: SmallCountedSet<Resource> = .init([.wool, .grain, .grain, .brick, .brick, .brick])

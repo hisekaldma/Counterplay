@@ -1,5 +1,5 @@
-/// A value that can be represented as an unsigned integer under a certain bound.
-/// Used together with `SmallSet`, `SmallCountedSet`, and `InlineMap`.
+/// A value that can be represented as an unsigned integer under a certain bound,
+/// used together with `SmallSet`, `SmallCountedSet`, and `InlineMap`.
 ///
 /// - Important: Do not conform to this protocol directly. Instead, conform to
 /// `SmallRawUInt8`, `SmallRawUInt16`, `SmallRawUInt32`, or `SmallRawUInt64`,
@@ -40,7 +40,7 @@ public protocol SmallRawUInt64: SmallRawUInt
 where SetStorage == UInt64, CountedSetStorage == SIMD64<UInt16> {
 }
 
-extension SmallRawUInt8  { public static var bound: UInt { 8 } }
+extension SmallRawUInt8 { public static var bound: UInt { 8 } }
 extension SmallRawUInt16 { public static var bound: UInt { 16 } }
 extension SmallRawUInt32 { public static var bound: UInt { 32 } }
 extension SmallRawUInt64 { public static var bound: UInt { 64 } }

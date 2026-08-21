@@ -11,7 +11,7 @@ extension Sequence {
         return result
     }
 
-    /// Returns true if any element in the sequence satisfies the given predicate
+    /// Returns true if any element in the sequence satisfies the given predicate.
     @inlinable
     public func any(_ predicate: (Element) -> Bool) -> Bool {
         for element in self {
@@ -22,7 +22,7 @@ extension Sequence {
         return false
     }
 
-    /// Returns true if all elements in the sequence satisfy the given predicate
+    /// Returns true if all elements in the sequence satisfy the given predicate.
     @inlinable
     public func all(_ predicate: (Element) -> Bool) -> Bool {
         for element in self {
@@ -136,4 +136,3 @@ extension Sequence {
         }
     }
 }
-

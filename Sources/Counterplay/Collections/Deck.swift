@@ -68,7 +68,9 @@ extension Deck {
 // MARK: - Drawing cards
 
 extension Deck {
-    /// Draws a card from the deck and returns it. If the deck is empty, shuffles the discard pile to make a new deck.
+    /// Draws a card from the deck and returns it.
+    ///
+    /// If the deck is empty, shuffles the discard pile to make a new deck.
     @inlinable
     public mutating func draw() -> Card? {
         if cards.isEmpty {
@@ -79,7 +81,9 @@ extension Deck {
         return cards.popLast()
     }
 
-    /// Draws the given number of cards from the deck and returns them. If the deck is empty, shuffles the discard pile to make a new deck.
+    /// Draws the given number of cards from the deck and returns them.
+    ///
+    /// If the deck is empty, shuffles the discard pile to make a new deck.
     ///
     /// - Precondition: `count` must be non-negative
     @inlinable

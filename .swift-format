@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "indentConditionalCompilationBlocks": false,
+  "indentation": {
+    "spaces": 4
+  },
+  "tabWidth": 4,
+  "lineLength": 160,
+  "maximumBlankLines": 2,
+  "rules": {
+    "AlwaysUseLiteralForEmptyCollectionInit": true,
+    "NeverUseForceTry": true,
+    "NeverUseImplicitlyUnwrappedOptionals": true,
+    "OmitExplicitReturns": true,
+  },
+  "spacesBeforeEndOfLineComments": 1,
+}

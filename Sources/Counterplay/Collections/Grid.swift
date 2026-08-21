@@ -84,15 +84,13 @@ extension Grid: Hashable where Cell: Hashable {
 
 extension Grid: CustomStringConvertible where Cell: CustomStringConvertible {
     public var description: String {
-        "[" +
-        (0..<Self.height).map { row in
-            "[" +
-            (0..<Self.width).map { column in
-                storage[row][column].description
-            }.joined(separator: ", ") +
-            "]"
-        }.joined(separator: ",\n") +
-        "]"
+        "["
+            + (0..<Self.height).map { row in
+                "["
+                    + (0..<Self.width).map { column in
+                        storage[row][column].description
+                    }.joined(separator: ", ") + "]"
+            }.joined(separator: ",\n") + "]"
     }
 }
 
@@ -109,11 +107,12 @@ extension Grid {
         )
         self.storage = .init(initializingWith: { rows in
             for row in 0..<Self.height {
-                rows.append(.init(initializingWith: { cols in
-                    for column in 0..<Self.width {
-                        cols.append(cells[row * Self.width + column])
-                    }
-                }))
+                rows.append(
+                    .init(initializingWith: { cols in
+                        for column in 0..<Self.width {
+                            cols.append(cells[row * Self.width + column])
+                        }
+                    }))
             }
         })
     }

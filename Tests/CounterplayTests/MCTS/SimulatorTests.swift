@@ -34,7 +34,7 @@ struct SimulatorTests {
             let simulator = TicTacToeSimulator(
                 setups: [
                     .init(players: [.player1, .player2]),
-                    .init(players: [.player1, .player2, .player3], boardSize: 4)
+                    .init(players: [.player1, .player2, .player3], boardSize: 4),
                 ],
                 budgetPerTurn: fastBudget
             )
@@ -45,10 +45,11 @@ struct SimulatorTests {
             #expect(simulator.games.count == 2)
             #expect(simulator.games.all { $0.isPending } == true)
             #expect(simulator.games.map(\.id) == [0, 1])
-            #expect(simulator.games.map(\.setup) == [
-                .init(players: [.player1, .player2]),
-                .init(players: [.player1, .player2, .player3], boardSize: 4)
-            ])
+            #expect(
+                simulator.games.map(\.setup) == [
+                    .init(players: [.player1, .player2]),
+                    .init(players: [.player1, .player2, .player3], boardSize: 4),
+                ])
         }
 
         @Test("Initialize with default parameters")

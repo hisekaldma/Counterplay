@@ -21,10 +21,10 @@ struct InlineMapTests {
         func initWithLiteral() {
             let dictionary: InlineMap<5, Resource, Int> = [
                 .lumber: 1,
-                .wool:   2,
-                .grain:  3,
-                .brick:  4,
-                .ore:    5,
+                .wool: 2,
+                .grain: 3,
+                .brick: 4,
+                .ore: 5,
             ]
             #expect(dictionary[.lumber] == 1)
             #expect(dictionary[.wool] == 2)
@@ -36,11 +36,11 @@ struct InlineMapTests {
         @Test("Initialize with literal in arbitrary key order")
         func initWithUnorderedLiteral() {
             let dictionary: InlineMap<5, Resource, Int> = [
-                .ore:    5,
+                .ore: 5,
                 .lumber: 1,
-                .brick:  4,
-                .grain:  3,
-                .wool:   2,
+                .brick: 4,
+                .grain: 3,
+                .wool: 2,
             ]
             #expect(dictionary[.lumber] == 1)
             #expect(dictionary[.wool] == 2)

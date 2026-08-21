@@ -262,7 +262,9 @@ extension MCTS {
             .move
     }
 
-    /// Visit counts for each possible move for the current player. The higher the visit count, the better the move.
+    /// Visit counts for each possible move for the current player.
+    ///
+    /// The higher the visit count, the better the move.
     @inlinable
     public var moves: [(move: Game.Move, visits: Int)] {
         root.children.compactMap { child in

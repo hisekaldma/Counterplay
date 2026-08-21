@@ -10,11 +10,13 @@ struct GridTests {
         @Test("Initialize grid repeating")
         func initRepeating() {
             let grid: SquareGrid<4, 3, Int> = .init(repeating: 0)
-            #expect(grid == .init(cells: [
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-            ]))
+            #expect(
+                grid
+                    == .init(cells: [
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0],
+                    ]))
         }
 
         @Test("Initialize grid with cells")
@@ -46,11 +48,13 @@ struct GridTests {
                 0, 0, 0, 0,
                 0, 0, 3, 0,
             ])
-            #expect(grid == .init(cells: [
-                [1, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 3, 0],
-            ]))
+            #expect(
+                grid
+                    == .init(cells: [
+                        [1, 0, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 3, 0],
+                    ]))
         }
 
         @Test("Initialize grid with array literal")
@@ -60,11 +64,13 @@ struct GridTests {
                 0, 0, 0, 0,
                 0, 0, 3, 0,
             ]
-            #expect(grid == .init(cells: [
-                [1, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 3, 0],
-            ]))
+            #expect(
+                grid
+                    == .init(cells: [
+                        [1, 0, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 3, 0],
+                    ]))
         }
 
         @Test("Initialize grid with dictionary")
@@ -73,11 +79,13 @@ struct GridTests {
                 .init(0, 0): 1,
                 .init(2, 2): 3,
             ])
-            #expect(grid == .init(cells: [
-                [1, nil, nil, nil],
-                [nil, nil, nil, nil],
-                [nil, nil, 3, nil],
-            ]))
+            #expect(
+                grid
+                    == .init(cells: [
+                        [1, nil, nil, nil],
+                        [nil, nil, nil, nil],
+                        [nil, nil, 3, nil],
+                    ]))
         }
     }
 
@@ -332,18 +340,20 @@ struct GridTests {
         func coordinates() {
             do {
                 let grid: PointyHexGrid<2, 3, Int> = .init(repeating: 0)
-                #expect(Array(grid.coordinates) == [
-                    .init(0, 0), .init(1, 0),
-                    .init(0, 1), .init(1, 1),
-                    .init(-1, 2), .init(0, 2),
-                ])
+                #expect(
+                    Array(grid.coordinates) == [
+                        .init(0, 0), .init(1, 0),
+                        .init(0, 1), .init(1, 1),
+                        .init(-1, 2), .init(0, 2),
+                    ])
             }
             do {
                 let grid: FlatHexGrid<3, 2, Int> = .init(repeating: 0)
-                #expect(Array(grid.coordinates) == [
-                    .init(0, 0), .init(1, 0), .init(2, -1),
-                    .init(0, 1), .init(1, 1), .init(2, 0),
-                ])
+                #expect(
+                    Array(grid.coordinates) == [
+                        .init(0, 0), .init(1, 0), .init(2, -1),
+                        .init(0, 1), .init(1, 1), .init(2, 0),
+                    ])
             }
         }
     }
@@ -500,13 +510,15 @@ struct GridTests {
         @Test("Neighbors can include diagonals")
         func neighborsWithDiagonals() {
             let grid: SquareGrid<4, 4, Int> = .init(repeating: 0)
-            #expect(Array(grid.neighbors(of: .init(1, 1), in: SquareDirection.allCases)) == [
-                .init(1, 0), .init(2, 0), .init(2, 1), .init(2, 2),
-                .init(1, 2), .init(0, 2), .init(0, 1), .init(0, 0),
-            ])
-            #expect(Array(grid.neighbors(of: .init(1, 1), in: SquareDirection.diagonal)) == [
-                .init(2, 0), .init(2, 2), .init(0, 2), .init(0, 0),
-            ])
+            #expect(
+                Array(grid.neighbors(of: .init(1, 1), in: SquareDirection.allCases)) == [
+                    .init(1, 0), .init(2, 0), .init(2, 1), .init(2, 2),
+                    .init(1, 2), .init(0, 2), .init(0, 1), .init(0, 0),
+                ])
+            #expect(
+                Array(grid.neighbors(of: .init(1, 1), in: SquareDirection.diagonal)) == [
+                    .init(2, 0), .init(2, 2), .init(0, 2), .init(0, 0),
+                ])
         }
 
         @Test("Neighbors outside the grid are left out")
@@ -515,39 +527,44 @@ struct GridTests {
                 let grid: SquareGrid<4, 4, Int> = .init(repeating: 0)
                 #expect(Array(grid.neighbors(of: .init(0, 0))) == [.init(1, 0), .init(0, 1)])
                 #expect(Array(grid.neighbors(of: .init(3, 3))) == [.init(3, 2), .init(2, 3)])
-                #expect(Array(grid.neighbors(of: .init(0, 0), in: SquareDirection.allCases)) == [
-                    .init(1, 0), .init(1, 1), .init(0, 1),
-                ])
+                #expect(
+                    Array(grid.neighbors(of: .init(0, 0), in: SquareDirection.allCases)) == [
+                        .init(1, 0), .init(1, 1), .init(0, 1),
+                    ])
             }
             do {
                 let grid: PointyHexGrid<4, 3, Int> = .init(repeating: 0)
-                #expect(grid.neighbors(of: .init(0, 0)).map { $0 } == [
-                    .init(1, 0),
-                    .init(0, 1),
-                ])
-                #expect(grid.neighbors(of: .init(1, 1)).map { $0 } == [
-                    .init(2, 1),
-                    .init(1, 2),
-                    .init(0, 2),
-                    .init(0, 1),
-                    .init(1, 0),
-                    .init(2, 0),
-                ])
+                #expect(
+                    grid.neighbors(of: .init(0, 0)).map { $0 } == [
+                        .init(1, 0),
+                        .init(0, 1),
+                    ])
+                #expect(
+                    grid.neighbors(of: .init(1, 1)).map { $0 } == [
+                        .init(2, 1),
+                        .init(1, 2),
+                        .init(0, 2),
+                        .init(0, 1),
+                        .init(1, 0),
+                        .init(2, 0),
+                    ])
             }
             do {
                 let grid: FlatHexGrid<4, 3, Int> = .init(repeating: 0)
-                #expect(grid.neighbors(of: .init(0, 0)).map { $0 } == [
-                    .init(1, 0),
-                    .init(0, 1),
-                ])
-                #expect(grid.neighbors(of: .init(1, 1)).map { $0 } == [
-                    .init(1, 0),
-                    .init(2, 0),
-                    .init(2, 1),
-                    .init(1, 2),
-                    .init(0, 2),
-                    .init(0, 1),
-                ])
+                #expect(
+                    grid.neighbors(of: .init(0, 0)).map { $0 } == [
+                        .init(1, 0),
+                        .init(0, 1),
+                    ])
+                #expect(
+                    grid.neighbors(of: .init(1, 1)).map { $0 } == [
+                        .init(1, 0),
+                        .init(2, 0),
+                        .init(2, 1),
+                        .init(1, 2),
+                        .init(0, 2),
+                        .init(0, 1),
+                    ])
             }
         }
     }

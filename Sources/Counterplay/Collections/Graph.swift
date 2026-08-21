@@ -7,14 +7,14 @@ public struct Graph<Node, Edge, Face> where Node: Hashable & Comparable {
     @usableFromInline
     internal struct NodePair: Hashable {
         @usableFromInline
-        internal let lowest:  Node
+        internal let lowest: Node
 
         @usableFromInline
         internal let highest: Node
 
         @inlinable
         internal init(_ a: Node, _ b: Node) {
-            self.lowest  = min(a, b)
+            self.lowest = min(a, b)
             self.highest = max(a, b)
         }
     }
@@ -66,9 +66,7 @@ public struct Graph<Node, Edge, Face> where Node: Hashable & Comparable {
 
 extension Graph: Equatable where Edge: Equatable, Face: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs._nodes == rhs._nodes &&
-        lhs._edges == rhs._edges &&
-        lhs._faces == rhs._faces
+        lhs._nodes == rhs._nodes && lhs._edges == rhs._edges && lhs._faces == rhs._faces
     }
 }
 

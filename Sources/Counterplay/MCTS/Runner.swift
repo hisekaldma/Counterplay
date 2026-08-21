@@ -119,13 +119,15 @@ extension Runner {
         defer { isPlaying = false }
 
         while !Task.isCancelled, !game.isFinished, game.currentPlayer != player {
-            guard let move = try? await MCTS.bestMove(
-                for: game,
-                budget: budgetPerTurn,
-                configuration: configuration,
-                determinizations: determinizationsPerTurn,
-                maxConcurrency: maxConcurrency
-            ) else { break }
+            guard
+                let move = try? await MCTS.bestMove(
+                    for: game,
+                    budget: budgetPerTurn,
+                    configuration: configuration,
+                    determinizations: determinizationsPerTurn,
+                    maxConcurrency: maxConcurrency
+                )
+            else { break }
             guard !Task.isCancelled else { break }
             game.makeMove(move)
         }
