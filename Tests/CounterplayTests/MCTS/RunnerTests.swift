@@ -1,12 +1,15 @@
 import Testing
 import Counterplay
 
-/// A budget small enough that a turn finishes quickly.
-private let fastBudget = MCTSBudget.iterations(100)
-
-/// A budget large enough that a turn is still being evaluated when we look at it.
-private let slowBudget = MCTSBudget.iterations(500_000)
-
+@MainActor
+private func waitUntil(timeout: Duration = .seconds(10), _ condition: () -> Bool) async -> Bool {
+    let deadline = ContinuousClock.now + timeout
+    while ContinuousClock.now < deadline {
+        if condition() { return true }
+        try? await Task.sleep(for: .milliseconds(1))
+    }
+    return condition()
+}
 
 @Suite("Runner")
 struct RunnerTests {
@@ -121,7 +124,7 @@ struct RunnerTests {
         @Test("Plays until it is the human player's turn")
         func playsUntilPlayerTurn() async {
             let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player2)
-            let runner = Runner(game: game, player: .player1, budgetPerTurn: fastBudget)
+            let runner = Runner(game: game, player: .player1, budgetPerTurn: .iterations(100))
 
             await runner.play()
 
@@ -155,7 +158,7 @@ struct RunnerTests {
         @Test("Plays every computer player before handing back to the human player")
         func playsAllComputerPlayers() async {
             let game = TicTacToe(players: [.player1, .player2, .player3], currentPlayer: .player2)
-            let runner = Runner(game: game, player: .player1, budgetPerTurn: fastBudget)
+            let runner = Runner(game: game, player: .player1, budgetPerTurn: .iterations(100))
 
             await runner.play()
 
@@ -166,7 +169,7 @@ struct RunnerTests {
         @Test("Playing does nothing when it is the human player's turn")
         func playDoesNothingOnPlayerTurn() async {
             let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1)
-            let runner = Runner(game: game, player: .player1, budgetPerTurn: fastBudget)
+            let runner = Runner(game: game, player: .player1, budgetPerTurn: .iterations(100))
 
             await runner.play()
 
@@ -183,7 +186,7 @@ struct RunnerTests {
                     [.player2, .player2, nil],
                     [nil, nil, nil],
                 ])
-            let runner = Runner(game: game, player: .player1, budgetPerTurn: fastBudget)
+            let runner = Runner(game: game, player: .player1, budgetPerTurn: .iterations(100))
 
             await runner.play()
 
@@ -211,7 +214,7 @@ struct RunnerTests {
             let runner = Runner(
                 game: game,
                 player: .player1,
-                budgetPerTurn: fastBudget,
+                budgetPerTurn: .iterations(100),
                 determinizationsPerTurn: 4,
                 maxConcurrency: 2
             )
@@ -229,7 +232,7 @@ struct RunnerTests {
         @Test("Making a move plays until it is the human player's turn again")
         func makeMovePlaysUntilPlayerTurn() async {
             let game = TicTacToe(players: [.player1, .player2, .player3], currentPlayer: .player1)
-            let runner = Runner(game: game, player: .player1, budgetPerTurn: fastBudget)
+            let runner = Runner(game: game, player: .player1, budgetPerTurn: .iterations(100))
 
             await runner.makeMove(TicTacToe.Move(x: 0, y: 0))
 
@@ -268,7 +271,7 @@ struct RunnerTests {
         @Test("Making a move does nothing when it is not the human player's turn")
         func makeMoveOnComputerTurn() async {
             let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player2)
-            let runner = Runner(game: game, player: .player1, budgetPerTurn: fastBudget)
+            let runner = Runner(game: game, player: .player1, budgetPerTurn: .iterations(100))
 
             await runner.makeMove(TicTacToe.Move(x: 0, y: 0))
 
@@ -284,7 +287,7 @@ struct RunnerTests {
                     [.player2, .player2, nil],
                     [nil, nil, nil],
                 ])
-            let runner = Runner(game: game, player: .player1, budgetPerTurn: fastBudget)
+            let runner = Runner(game: game, player: .player1, budgetPerTurn: .iterations(100))
 
             await runner.makeMove(TicTacToe.Move(x: 2, y: 1))
 
@@ -297,18 +300,22 @@ struct RunnerTests {
     @MainActor
     struct Cancellation {
         @Test("Cancelling discards the evaluation in progress")
-        func cancelDiscardsInProgressEvaluation() async {
+        func cancelDiscardsInProgressEvaluation() async throws {
             let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player2)
-            let runner = Runner(game: game, player: .player1, budgetPerTurn: slowBudget)
+            let runner = Runner(
+                game: game,
+                player: .player1,
+                budgetPerTurn: .time(.seconds(2)),
+                maxConcurrency: 1
+            )
 
             let task = Task { await runner.play() }
-            try? await Task.sleep(for: .milliseconds(50))
+            try #require(await waitUntil { runner.isPlaying })
 
-            #expect(runner.isPlaying == true)
             #expect(runner.game.currentPlayer == .player2)
             #expect(runner.game.moveCount == 0)
 
-            task.cancel() // Cancel after 50 ms
+            task.cancel()
             await task.value
 
             #expect(runner.isPlaying == false)

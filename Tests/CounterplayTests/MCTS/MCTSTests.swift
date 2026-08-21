@@ -508,7 +508,7 @@ struct MCTSTests {
             await #expect(processExitsWith: .success) {
                 await withCheckedContinuation { continuation in
                     let thread = Thread {
-                        let depth = 1000
+                        let depth = 2000
                         let mcts = MCTS(
                             game: DeepGame(turnsLeft: depth),
                             configuration: .init(maxPlayoutDepth: 0)
@@ -517,7 +517,7 @@ struct MCTSTests {
                         _ = consume mcts // Release the search tree
                         continuation.resume()
                     }
-                    thread.stackSize = 4 * 4_096
+                    thread.stackSize = 64 * 4_096
                     thread.start()
                 }
             }

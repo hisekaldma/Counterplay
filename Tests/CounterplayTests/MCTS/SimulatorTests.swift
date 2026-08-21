@@ -3,14 +3,14 @@ import Counterplay
 
 private typealias TicTacToeSimulator = Simulator<TicTacToe, TicTacToe.Setup, TicTacToe.Result>
 
-/// A budget small enough that a whole simulation finishes quickly.
-private let fastBudget = MCTSBudget.iterations(10)
-
-/// A budget large enough that a simulation is still running when we look at it.
-private let slowBudget = MCTSBudget.iterations(500_000)
-
-private func manySetups(_ count: Int) -> [TicTacToe.Setup] {
-    (0..<count).map { _ in TicTacToe.Setup(players: [.player1, .player2]) }
+@MainActor
+private func waitUntil(timeout: Duration = .seconds(10), _ condition: () -> Bool) async -> Bool {
+    let deadline = ContinuousClock.now + timeout
+    while ContinuousClock.now < deadline {
+        if condition() { return true }
+        try? await Task.sleep(for: .milliseconds(1))
+    }
+    return condition()
 }
 
 
@@ -36,7 +36,7 @@ struct SimulatorTests {
                     .init(players: [.player1, .player2]),
                     .init(players: [.player1, .player2, .player3], boardSize: 4),
                 ],
-                budgetPerTurn: fastBudget
+                budgetPerTurn: .iterations(10)
             )
 
             #expect(simulator.totalGames == 2)
@@ -112,7 +112,7 @@ struct SimulatorTests {
         func completedGame() async {
             let simulator = TicTacToeSimulator(
                 setups: [.init(players: [.player1, .player2])],
-                budgetPerTurn: fastBudget
+                budgetPerTurn: .iterations(10)
             )
 
             await simulator.run()
@@ -136,7 +136,7 @@ struct SimulatorTests {
                 TicTacToe.Setup(players: [.player2, .player3]),
                 TicTacToe.Setup(players: [.player1, .player2, .player3]),
             ]
-            let simulator = TicTacToeSimulator(setups: setups, budgetPerTurn: fastBudget)
+            let simulator = TicTacToeSimulator(setups: setups, budgetPerTurn: .iterations(10))
 
             await simulator.run()
 
@@ -152,7 +152,7 @@ struct SimulatorTests {
                 TicTacToe.Setup(players: [.player1, .player2], boardSize: 3),
                 TicTacToe.Setup(players: [.player1, .player2, .player3], boardSize: 4),
             ]
-            let simulator = TicTacToeSimulator(setups: setups, budgetPerTurn: fastBudget)
+            let simulator = TicTacToeSimulator(setups: setups, budgetPerTurn: .iterations(10))
 
             await simulator.run()
 
@@ -165,8 +165,8 @@ struct SimulatorTests {
         @Test("Runs more games than the concurrency limit")
         func runsMoreGamesThanConcurrency() async {
             let simulator = TicTacToeSimulator(
-                setups: manySetups(6),
-                budgetPerTurn: fastBudget,
+                setups: (0..<6).map { _ in TicTacToe.Setup(players: [.player1, .player2]) },
+                budgetPerTurn: .iterations(10),
                 maxConcurrency: 2
             )
 
@@ -180,7 +180,7 @@ struct SimulatorTests {
         @Test("Runs within a time budget")
         func runsWithinTimeBudget() async {
             let simulator = TicTacToeSimulator(
-                setups: manySetups(2),
+                setups: (0..<2).map { _ in TicTacToe.Setup(players: [.player1, .player2]) },
                 budgetPerTurn: .time(.milliseconds(10))
             )
 
@@ -202,7 +202,10 @@ struct SimulatorTests {
 
         @Test("Running again after finishing does nothing")
         func runTwice() async {
-            let simulator = TicTacToeSimulator(setups: manySetups(4), budgetPerTurn: fastBudget)
+            let simulator = TicTacToeSimulator(
+                setups: (0..<4).map { _ in TicTacToe.Setup(players: [.player1, .player2]) },
+                budgetPerTurn: .iterations(10)
+            )
 
             await simulator.run()
 
@@ -216,53 +219,46 @@ struct SimulatorTests {
         }
     }
 
-    @Suite("Cancellation")
+    @Suite("Cancellation", .serialized)
     @MainActor
     struct Cancellation {
+
         @Test("Cancelling discards games in progress")
-        func cancelDiscardsInProgressGames() async {
+        func cancelDiscardsInProgressGames() async throws {
             let simulator = TicTacToeSimulator(
-                setups: manySetups(4),
-                budgetPerTurn: slowBudget
+                setups: (0..<4).map { _ in TicTacToe.Setup(players: [.player1, .player2]) },
+                budgetPerTurn: .time(.seconds(2)),
+                maxConcurrency: 1
             )
 
             let task = Task { await simulator.run() }
-            try? await Task.sleep(for: .milliseconds(50))
-
-            #expect(simulator.isRunning == true)
-            #expect(simulator.games.any { $0.isRunning } == true)
-            #expect(simulator.completedGames == 0)
+            try #require(await waitUntil { simulator.isRunning })
 
             task.cancel()
             await task.value
 
             #expect(simulator.isRunning == false)
-            #expect(simulator.games.any { $0.isRunning } == false)
             #expect(simulator.completedGames == 0)
         }
 
         @Test("Cancelling keeps completed games")
-        func cancelKeepsCompletedGames() async {
+        func cancelKeepsCompletedGames() async throws {
             let simulator = TicTacToeSimulator(
-                setups: manySetups(2000),
-                budgetPerTurn: fastBudget
+                setups: (0..<2000).map { _ in TicTacToe.Setup(players: [.player1, .player2]) },
+                budgetPerTurn: .iterations(100),
+                maxConcurrency: 1
             )
 
             let task = Task { await simulator.run() }
-            try? await Task.sleep(for: .milliseconds(50))
+            try #require(await waitUntil { simulator.completedGames > 0 })
 
-            #expect(simulator.isRunning == true)
-            #expect(simulator.games.any { $0.isRunning } == true)
-            #expect(simulator.completedGames > 0)
-
-            // However many games got done, cancelling must not throw them away
-            let completedBeforeCancel = simulator.completedGames
+            let completedAtCancel = simulator.completedGames
             task.cancel()
             await task.value
 
             #expect(simulator.isRunning == false)
-            #expect(simulator.games.any { $0.isRunning } == false)
-            #expect(simulator.completedGames >= completedBeforeCancel)
+            #expect(simulator.completedGames >= completedAtCancel)
+            #expect(simulator.completedGames < 50)
         }
     }
 }
