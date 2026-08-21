@@ -1,0 +1,12 @@
+name: Lint
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    container: swift:6.2
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift format lint --recursive --strict Sources Tests
