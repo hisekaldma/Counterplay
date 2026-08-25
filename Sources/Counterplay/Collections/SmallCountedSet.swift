@@ -231,6 +231,16 @@ extension SmallCountedSet: AdditiveArithmetic {
 
 extension SmallCountedSet {
     @inlinable
+    public static func * (lhs: Self, rhs: Self) -> Self {
+        // Zero lanes can't overflow, so substituting 1 avoids dividing by zero
+        // while leaving the comparison below false (nothing exceeds `.max`).
+        let divisor = rhs.storage.replacing(with: 1, where: rhs.storage .== 0)
+        let product = lhs.storage &* rhs.storage
+        let overflow = lhs.storage .> .init(repeating: .max) / divisor
+        return .init(storage: product.replacing(with: UInt16.max, where: overflow))
+    }
+
+    @inlinable
     public static func * (lhs: Self, rhs: Int) -> Self {
         let multiplier = UInt16(clamping: rhs)
         guard multiplier > 0 else {
@@ -238,12 +248,17 @@ extension SmallCountedSet {
         }
         let product = lhs.storage &* .init(repeating: multiplier)
         let overflow = lhs.storage .> .init(repeating: UInt16.max / multiplier)
-        return .init(storage: product.replacing(with: .max, where: overflow))
+        return .init(storage: product.replacing(with: UInt16.max, where: overflow))
     }
 
     @inlinable
     public static func * (lhs: Int, rhs: Self) -> Self {
         rhs * lhs
+    }
+
+    @inlinable
+    public static func *= (lhs: inout Self, rhs: Self) {
+        lhs = lhs * rhs
     }
 
     @inlinable
