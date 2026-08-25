@@ -322,17 +322,22 @@ struct SmallCountedSetTests {
             let set: SmallCountedSet<Resource> = [.lumber: 1, .wool: 2]
             let set1 = set * 2
             let set2 = 2 * set
+            let set3 = set * set
             #expect(set1 == [.lumber: 2, .wool: 4])
             #expect(set2 == [.lumber: 2, .wool: 4])
+            #expect(set3 == [.lumber: 1, .wool: 4])
         }
 
         @Test("Multiplication clamps to the maximum count")
         func multiplicationClampsToMax() {
-            let set: SmallCountedSet<Resource> = [.lumber: 40000, .wool: 32767]
+            let set: SmallCountedSet<Resource> = [.lumber: 40000, .wool: 32767, .grain: 2, .ore: 2]
             let set1 = set * 2
             let set2 = 2 * set
-            #expect(set1 == [.lumber: SmallCountedSet<Resource>.maxCount, .wool: SmallCountedSet<Resource>.maxCount - 1])
-            #expect(set2 == [.lumber: SmallCountedSet<Resource>.maxCount, .wool: SmallCountedSet<Resource>.maxCount - 1])
+            let set3 = set * [.lumber: 2, .wool: 2, .grain: 40000, .ore: 32767]
+            let max = SmallCountedSet<Resource>.maxCount
+            #expect(set1 == [.lumber: max, .wool: max - 1, .grain: 4, .ore: 4])
+            #expect(set2 == [.lumber: max, .wool: max - 1, .grain: 4, .ore: 4])
+            #expect(set3 == [.lumber: max, .wool: max - 1, .grain: max, .ore: max - 1])
         }
 
         @Test("Multiplication by zero or less empties the set")
