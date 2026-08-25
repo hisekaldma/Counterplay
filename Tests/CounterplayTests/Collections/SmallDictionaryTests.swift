@@ -1,15 +1,15 @@
 import Testing
 import Counterplay
 
-@Suite("InlineMap")
-struct InlineMapTests {
+@Suite("SmallDictionary")
+struct SmallDictionaryTests {
 
     @Suite("Initialization")
     struct Initialization {
 
         @Test("Initialize empty")
         func initEmpty() {
-            let dictionary: InlineMap<5, Resource, Int> = [:]
+            let dictionary: SmallDictionary<5, Resource, Int> = [:]
             #expect(dictionary.isEmpty)
             #expect(dictionary.count == 0)
             #expect(dictionary[.lumber] == nil)
@@ -17,7 +17,7 @@ struct InlineMapTests {
 
         @Test("Initialize with literal")
         func initWithLiteral() {
-            let dictionary: InlineMap<5, Resource, Int> = [.wool: 2, .ore: 5]
+            let dictionary: SmallDictionary<5, Resource, Int> = [.wool: 2, .ore: 5]
             #expect(dictionary.count == 2)
             #expect(dictionary[.lumber] == nil)
             #expect(dictionary[.wool] == 2)
@@ -31,7 +31,7 @@ struct InlineMapTests {
             let pairs: [(Resource, Int)] = [
                 (.lumber, 1), (.wool, 2), (.grain, 3), (.brick, 4), (.ore, 5),
             ]
-            let dictionary = InlineMap<5, Resource, Int>(uniqueKeysWithValues: pairs)
+            let dictionary = SmallDictionary<5, Resource, Int>(uniqueKeysWithValues: pairs)
             #expect(dictionary[.lumber] == 1)
             #expect(dictionary[.wool] == 2)
             #expect(dictionary[.grain] == 3)
@@ -45,11 +45,11 @@ struct InlineMapTests {
 
         @Test("Equatable")
         func equatable() {
-            let dictionary1: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 0]
-            let dictionary2: InlineMap<5, Resource, Int> = [.wool: 2, .lumber: 1, .grain: 0]
-            let dictionary3: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 9, .grain: 0]
-            let dictionary4: InlineMap<5, Resource, Int> = [.lumber: 0, .wool: 0, .grain: 0]
-            let dictionary5: InlineMap<5, Resource, Int> = [.lumber: 0, .wool: 0, .grain: 0]
+            let dictionary1: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 0]
+            let dictionary2: SmallDictionary<5, Resource, Int> = [.wool: 2, .lumber: 1, .grain: 0]
+            let dictionary3: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 9, .grain: 0]
+            let dictionary4: SmallDictionary<5, Resource, Int> = [.lumber: 0, .wool: 0, .grain: 0]
+            let dictionary5: SmallDictionary<5, Resource, Int> = [.lumber: 0, .wool: 0, .grain: 0]
 
             #expect(dictionary1 == dictionary2)
             #expect(dictionary1 != dictionary3)
@@ -59,10 +59,10 @@ struct InlineMapTests {
 
         @Test("Hashable")
         func hashable() {
-            let dictionary1: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 0]
-            let dictionary2: InlineMap<5, Resource, Int> = [.wool: 2, .lumber: 1, .grain: 0]
-            let dictionary3: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 9, .grain: 0]
-            let dictionary4: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 2]
+            let dictionary1: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 0]
+            let dictionary2: SmallDictionary<5, Resource, Int> = [.wool: 2, .lumber: 1, .grain: 0]
+            let dictionary3: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 9, .grain: 0]
+            let dictionary4: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 2]
 
             #expect(Set([dictionary1, dictionary2]).count == 1)
             #expect(Set([dictionary1, dictionary3]).count == 2)
@@ -71,8 +71,8 @@ struct InlineMapTests {
 
         @Test("Description")
         func description() {
-            let empty: InlineMap<5, Resource, Int> = [:]
-            let dictionary: InlineMap<5, Resource, Int> = [.wool: 2, .ore: 5]
+            let empty: SmallDictionary<5, Resource, Int> = [:]
+            let dictionary: SmallDictionary<5, Resource, Int> = [.wool: 2, .ore: 5]
             #expect(empty.description == "[:]")
             #expect(dictionary.description == "[.wool: 2, .ore: 5]")
         }
@@ -83,54 +83,54 @@ struct InlineMapTests {
 
         @Test("Get value")
         func get() {
-            let dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .ore: 2]
+            let dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .ore: 2]
             #expect(dictionary[.lumber] == 1)
         }
 
         @Test("Get absent value")
         func getAbsent() {
-            let dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .ore: 2]
+            let dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .ore: 2]
             #expect(dictionary[.grain] == nil)
         }
 
         @Test("Set value")
         func set() {
-            var dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .ore: 2]
+            var dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .ore: 2]
             dictionary[.lumber] = 7
             #expect(dictionary == [.lumber: 7, .ore: 2])
         }
 
         @Test("Set absent value")
         func setAbsent() {
-            var dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .ore: 2]
+            var dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .ore: 2]
             dictionary[.grain] = 7
             #expect(dictionary == [.lumber: 1, .grain: 7, .ore: 2])
         }
 
         @Test("Set value to nil")
         func remove() {
-            var dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .ore: 2]
+            var dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .ore: 2]
             dictionary[.lumber] = nil
             #expect(dictionary == [.ore: 2])
         }
 
         @Test("Set absent value to nil")
         func removeAbsent() {
-            var dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .ore: 2]
+            var dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .ore: 2]
             dictionary[.grain] = nil
             #expect(dictionary == [.lumber: 1, .ore: 2])
         }
 
         @Test("Set value with default")
         func setWithDefault() {
-            var dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .ore: 2]
+            var dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .ore: 2]
             dictionary[.lumber, default: 3] += 7
             #expect(dictionary == [.lumber: 8, .ore: 2])
         }
 
         @Test("Set absent value with default")
         func setAbsentWithDefault() {
-            var dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .ore: 2]
+            var dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .ore: 2]
             dictionary[.grain, default: 3] += 7
             #expect(dictionary == [.lumber: 1, .grain: 10, .ore: 2])
         }
@@ -141,10 +141,10 @@ struct InlineMapTests {
 
         @Test("Collection conformance")
         func collection() {
-            let dictionary1: InlineMap<5, Resource, Int> = [:]
-            let dictionary2: InlineMap<5, Resource, Int> = [.lumber: 1, .brick: 2]
-            let dictionary3: InlineMap<5, Resource, Int> = [.wool: 1, .brick: 2, .ore: 3]
-            let dictionary4: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
+            let dictionary1: SmallDictionary<5, Resource, Int> = [:]
+            let dictionary2: SmallDictionary<5, Resource, Int> = [.lumber: 1, .brick: 2]
+            let dictionary3: SmallDictionary<5, Resource, Int> = [.wool: 1, .brick: 2, .ore: 3]
+            let dictionary4: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
             #expect(dictionary1.count == 0)
             #expect(dictionary2.count == 2)
             #expect(dictionary3.count == 3)
@@ -165,10 +165,10 @@ struct InlineMapTests {
 
         @Test("Bidirectional collection conformance")
         func bidirectional() {
-            let dictionary1: InlineMap<5, Resource, Int> = [:]
-            let dictionary2: InlineMap<5, Resource, Int> = [.lumber: 1, .brick: 2]
-            let dictionary3: InlineMap<5, Resource, Int> = [.wool: 1, .brick: 2, .ore: 3]
-            let dictionary4: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
+            let dictionary1: SmallDictionary<5, Resource, Int> = [:]
+            let dictionary2: SmallDictionary<5, Resource, Int> = [.lumber: 1, .brick: 2]
+            let dictionary3: SmallDictionary<5, Resource, Int> = [.wool: 1, .brick: 2, .ore: 3]
+            let dictionary4: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
             #expect(dictionary1.reversed().map { $0.key } == [])
             #expect(dictionary1.reversed().map { $0.value } == [])
             #expect(dictionary2.reversed().map { $0.key } == [.brick, .lumber])
@@ -185,28 +185,28 @@ struct InlineMapTests {
 
         @Test("Map values")
         func mapValues() {
-            let dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
+            let dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
             let mapped = dictionary.mapValues { $0 * 2 }
             #expect(mapped == [.lumber: 2, .wool: 4, .grain: 6, .brick: 8, .ore: 10])
         }
 
         @Test("Map values to a different type")
         func mapValuesToDifferentType() {
-            let dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
+            let dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
             let mapped = dictionary.mapValues { "\($0)" }
             #expect(mapped == [.lumber: "1", .wool: "2", .grain: "3", .brick: "4", .ore: "5"])
         }
 
         @Test("Compact map values")
         func compactMapValues() {
-            let dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
+            let dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
             let mapped = dictionary.compactMapValues { $0.isMultiple(of: 2) ? $0 : nil }
             #expect(mapped == [.wool: 2, .brick: 4])
         }
 
         @Test("Filter")
         func filter() {
-            let dictionary: InlineMap<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
+            let dictionary: SmallDictionary<5, Resource, Int> = [.lumber: 1, .wool: 2, .grain: 3, .brick: 4, .ore: 5]
             let filtered = dictionary.filter { $0.value > 1 }
             #expect(filtered == [.wool: 2, .grain: 3, .brick: 4, .ore: 5])
         }

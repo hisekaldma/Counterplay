@@ -455,9 +455,9 @@ var cost: SmallCountedSet<Resource> = [.lumber, .ore, .ore]
 | `SmallRawUInt32` | 32        | `UInt32`           | `SIMD32<UInt16>`          |
 | `SmallRawUInt64` | 64        | `UInt64`           | `SIMD64<UInt16>`          |
 
-### `InlineMap`
+### `SmallDictionary`
 
-An inline fixed-size key-value storage, for when a set isn’t enough. Perfect for storing the state of each player:
+An inline key-value storage, for when a set isn’t enough. Perfect for storing the state of each player:
 
 ```swift
 enum Player: UInt, SmallRawUInt8 {
@@ -465,7 +465,7 @@ enum Player: UInt, SmallRawUInt8 {
 }
 
 struct CardGameState {
-    var playerStates: InlineMap<4, Player, PlayerState>
+    var playerStates: SmallDictionary<4, Player, PlayerState>
 }
 
 struct PlayerState {
@@ -474,4 +474,4 @@ struct PlayerState {
 }
 ```
 
-The size parameter is a compile-time constant and sets the exact number of entries you'll store. Key must conform to `SmallRawUInt8`.
+The `maxSize` parameter is a compile-time constant and sets the maximum number of entries you can store. Key must conform to `SmallRawUInt` and have raw values in `0..<maxSize`.

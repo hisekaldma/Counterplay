@@ -1,5 +1,5 @@
 /// A value that can be represented as an unsigned integer under a certain bound,
-/// used together with `SmallSet`, `SmallCountedSet`, and `InlineMap`.
+/// used together with `SmallSet`, `SmallCountedSet`, and `SmallDictionary`.
 ///
 /// - Important: Do not conform to this protocol directly. Instead, conform to
 /// `SmallRawUInt8`, `SmallRawUInt16`, `SmallRawUInt32`, or `SmallRawUInt64`,

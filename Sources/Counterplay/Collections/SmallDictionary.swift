@@ -2,11 +2,11 @@
 ///
 /// Keys must conform to `SmallRawUInt` and have raw values in `0..<maxSize`.
 /// Values are stored in an inline array of `maxSize` slots, indexed by the key's raw value, so lookups are O(1).
-public struct InlineMap<let maxSize: Int, Key, Value> where Key: SmallRawUInt {
+public struct SmallDictionary<let maxSize: Int, Key, Value> where Key: SmallRawUInt {
     @usableFromInline
     internal var storage: InlineArray<maxSize, Value?>
 
-    /// Creates an empty map.
+    /// Creates an empty dictionary.
     @inlinable
     public init() {
         self.storage = .init(repeating: nil)
@@ -21,9 +21,9 @@ public struct InlineMap<let maxSize: Int, Key, Value> where Key: SmallRawUInt {
 
 // MARK: - Conformances
 
-extension InlineMap: Sendable where Value: Sendable {}
+extension SmallDictionary: Sendable where Value: Sendable {}
 
-extension InlineMap: Equatable where Value: Equatable {
+extension SmallDictionary: Equatable where Value: Equatable {
     @inlinable
     public static func == (lhs: Self, rhs: Self) -> Bool {
         for i in 0..<maxSize {
@@ -35,7 +35,7 @@ extension InlineMap: Equatable where Value: Equatable {
     }
 }
 
-extension InlineMap: Hashable where Value: Hashable {
+extension SmallDictionary: Hashable where Value: Hashable {
     @inlinable
     public func hash(into hasher: inout Hasher) {
         var count = 0
@@ -53,7 +53,7 @@ extension InlineMap: Hashable where Value: Hashable {
 
 // MARK: - Description
 
-extension InlineMap: CustomStringConvertible {
+extension SmallDictionary: CustomStringConvertible {
     public var description: String {
         if self.isEmpty {
             return "[:]"
@@ -77,17 +77,17 @@ extension InlineMap: CustomStringConvertible {
 }
 
 
-// MARK: - Creating maps
+// MARK: - Creating dictionaries
 
-extension InlineMap: ExpressibleByDictionaryLiteral {
+extension SmallDictionary: ExpressibleByDictionaryLiteral {
     @inlinable
     public init(dictionaryLiteral elements: (Key, Value)...) {
         self.init(uniqueKeysWithValues: elements)
     }
 }
 
-extension InlineMap {
-    /// Creates a new inline map from the given dictionary.
+extension SmallDictionary {
+    /// Creates a new dictionary from the given dictionary.
     ///
     /// - Precondition: Every key in `dictionary` must have a raw value in `0..<maxSize`.
     @inlinable
@@ -95,7 +95,7 @@ extension InlineMap {
         self.init(uniqueKeysWithValues: dictionary)
     }
 
-    /// Creates a new inline map from the key-value pairs in the given sequence.
+    /// Creates a new dictionary from the key-value pairs in the given sequence.
     ///
     /// - Precondition: The sequence must not have duplicate keys.
     /// - Precondition: Every key in the sequence must have a raw value in `0..<maxSize`.
@@ -106,7 +106,7 @@ extension InlineMap {
             let index = key.scalarIndex
             precondition(
                 index < maxSize,
-                "InlineMap with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
+                "SmallDictionary with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
             )
             precondition(
                 storage[index] == nil,
@@ -120,8 +120,8 @@ extension InlineMap {
 
 // MARK: - Count
 
-extension InlineMap {
-    /// The number of key-value pairs in the map.
+extension SmallDictionary {
+    /// The number of key-value pairs in the dictionary.
     @inlinable
     public var count: Int {
         var count = 0
@@ -131,7 +131,7 @@ extension InlineMap {
         return count
     }
 
-    /// Whether the map has no key-value pairs.
+    /// Whether the dictionary has no key-value pairs.
     @inlinable
     public var isEmpty: Bool {
         for i in 0..<maxSize where storage[i] != nil {
@@ -144,7 +144,7 @@ extension InlineMap {
 
 // MARK: - Subscript
 
-extension InlineMap {
+extension SmallDictionary {
     /// Gets or sets the value associated with the given key, or `nil` if the key is absent.
     ///
     /// - Precondition: The key must have a raw value in `0..<maxSize`.
@@ -154,7 +154,7 @@ extension InlineMap {
             let index = key.scalarIndex
             precondition(
                 index < maxSize,
-                "InlineMap with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
+                "SmallDictionary with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
             )
             yield storage[index]
         }
@@ -162,7 +162,7 @@ extension InlineMap {
             let index = key.scalarIndex
             precondition(
                 index < maxSize,
-                "InlineMap with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
+                "SmallDictionary with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
             )
             yield &storage[index]
         }
@@ -180,7 +180,7 @@ extension InlineMap {
             let index = key.scalarIndex
             precondition(
                 index < maxSize,
-                "InlineMap with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
+                "SmallDictionary with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
             )
             if storage[index] == nil {
                 storage[index] = defaultValue()
@@ -193,7 +193,7 @@ extension InlineMap {
 
 // MARK: - Collection
 
-extension InlineMap: Collection {
+extension SmallDictionary: Collection {
     public typealias Element = (key: Key, value: Value)
 
     public struct Index: Equatable, Comparable {
@@ -226,7 +226,7 @@ extension InlineMap: Collection {
         precondition(index.wrapped >= 0, "Index out of bounds")
         precondition(index.wrapped < maxSize, "Index out of bounds")
         guard let value = storage[index.wrapped] else {
-            preconditionFailure("Index does not refer to an entry in the map")
+            preconditionFailure("Index does not refer to an entry in the dictionary")
         }
         return (Key(rawValue: UInt(index.wrapped))!, value)
     }
@@ -241,7 +241,7 @@ extension InlineMap: Collection {
     }
 }
 
-extension InlineMap: BidirectionalCollection {
+extension SmallDictionary: BidirectionalCollection {
     @inlinable
     public func index(before index: Index) -> Index {
         precondition(index.wrapped >= 0, "Index out of bounds")
@@ -252,7 +252,7 @@ extension InlineMap: BidirectionalCollection {
     }
 }
 
-extension InlineMap {
+extension SmallDictionary {
     @inlinable
     internal func firstOccupiedSlot(after start: Int) -> Int {
         var i = start
@@ -275,14 +275,14 @@ extension InlineMap {
 
 // MARK: - Keys and values
 
-extension InlineMap {
-    /// The keys present in the map, in ascending order of raw value.
+extension SmallDictionary {
+    /// The keys present in the dictionary, in ascending order of raw value.
     @inlinable
     public var keys: some Collection<Key> {
         lazy.map(\.key)
     }
 
-    /// The values present in the map, in ascending order of their key's raw value.
+    /// The values present in the dictionary, in ascending order of their key's raw value.
     @inlinable
     public var values: some Collection<Value> {
         lazy.map(\.value)
@@ -292,28 +292,28 @@ extension InlineMap {
 
 // MARK: - Mapping
 
-extension InlineMap {
-    /// Returns a new inline map containing the keys of this map with the
+extension SmallDictionary {
+    /// Returns a new dictionary containing the keys of this dictionary with the
     /// values transformed by the given closure.
     @inlinable
-    public func mapValues<T>(_ transform: (Value) -> T) -> InlineMap<maxSize, Key, T> {
-        InlineMap<maxSize, Key, T>(
+    public func mapValues<T>(_ transform: (Value) -> T) -> SmallDictionary<maxSize, Key, T> {
+        SmallDictionary<maxSize, Key, T>(
             storage: .init({ i in
                 self.storage[i].map(transform)
             }))
     }
 
-    /// Returns a new inline map containing the entries of this map for which
+    /// Returns a new dictionary containing the entries of this dictionary for which
     /// the given closure returns a value, with the values transformed by the closure.
     @inlinable
-    public func compactMapValues<T>(_ transform: (Value) -> T?) -> InlineMap<maxSize, Key, T> {
-        InlineMap<maxSize, Key, T>(
+    public func compactMapValues<T>(_ transform: (Value) -> T?) -> SmallDictionary<maxSize, Key, T> {
+        SmallDictionary<maxSize, Key, T>(
             storage: .init({ i in
                 self.storage[i].flatMap(transform)
             }))
     }
 
-    /// Returns a new inline map containing the entries that satisfy the given predicate.
+    /// Returns a new dictionary containing the entries that satisfy the given predicate.
     @inlinable
     public func filter(_ isIncluded: (Element) -> Bool) -> Self {
         var result = Self()
