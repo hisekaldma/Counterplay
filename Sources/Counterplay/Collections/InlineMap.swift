@@ -1,31 +1,19 @@
 /// A collection of key-value pairs, stored inline in a fixed-size array.
 ///
-/// Keys must conform to `SmallRawUInt8` (up to 8 distinct values).
-/// Values are stored in an inline array of size `size`, indexed by the
-/// key's raw value, so lookups are O(1).
-///
-/// - Important: `Key` must have a case for every raw value in `0..<size`.
-///   An `InlineMap<3, Key, Value>` stores a value for keys with raw values
-///   0, 1, and 2; keys with higher raw values can't be stored, and
-///   subscripting with one is a programmer error.
-public struct InlineMap<let size: Int, Key, Value> where Key: SmallRawUInt8 {
+/// Keys must conform to `SmallRawUInt` and have raw values in `0..<maxSize`.
+/// Values are stored in an inline array of `maxSize` slots, indexed by the key's raw value, so lookups are O(1).
+public struct InlineMap<let maxSize: Int, Key, Value> where Key: SmallRawUInt {
     @usableFromInline
-    internal var storage: InlineArray<size, Value>
+    internal var storage: InlineArray<maxSize, Value?>
 
-    /// Creates an inline map with the given initial value.
+    /// Creates an empty map.
     @inlinable
-    public init(repeating initialValue: Value) {
-        for i in 0..<size {
-            assert(
-                Key(rawValue: UInt(i)) != nil,
-                "InlineMap<\(size), \(Key.self), \(Value.self)> requires \(Key.self) to have a case for every raw value in 0..<\(size), but there is none for \(i)."
-            )
-        }
-        self.storage = .init(repeating: initialValue)
+    public init() {
+        self.storage = .init(repeating: nil)
     }
 
     @inlinable
-    internal init(storage: InlineArray<size, Value>) {
+    internal init(storage: InlineArray<maxSize, Value?>) {
         self.storage = storage
     }
 }
@@ -38,7 +26,7 @@ extension InlineMap: Sendable where Value: Sendable {}
 extension InlineMap: Equatable where Value: Equatable {
     @inlinable
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        for i in lhs.storage.indices {
+        for i in 0..<maxSize {
             guard lhs.storage[i] == rhs.storage[i] else {
                 return false
             }
@@ -50,10 +38,15 @@ extension InlineMap: Equatable where Value: Equatable {
 extension InlineMap: Hashable where Value: Hashable {
     @inlinable
     public func hash(into hasher: inout Hasher) {
-        for i in storage.indices {
-            hasher.combine(UInt(i))
-            hasher.combine(storage[i])
+        var count = 0
+        for i in 0..<maxSize {
+            if let value = storage[i] {
+                hasher.combine(UInt(i))
+                hasher.combine(value)
+                count += 1
+            }
         }
+        hasher.combine(count)
     }
 }
 
@@ -96,8 +89,7 @@ extension InlineMap: ExpressibleByDictionaryLiteral {
 extension InlineMap {
     /// Creates a new inline map from the given dictionary.
     ///
-    /// - Precondition: `dictionary` must contain exactly one entry for each
-    ///   key with a raw value in `0..<size`.
+    /// - Precondition: Every key in `dictionary` must have a raw value in `0..<maxSize`.
     @inlinable
     public init(_ dictionary: [Key: Value]) where Key: Hashable {
         self.init(uniqueKeysWithValues: dictionary)
@@ -105,26 +97,23 @@ extension InlineMap {
 
     /// Creates a new inline map from the key-value pairs in the given sequence.
     ///
-    /// - Precondition: `keysAndValues` must contain exactly one entry for each
-    ///   key with a raw value in `0..<size`.
+    /// - Precondition: The sequence must not have duplicate keys.
+    /// - Precondition: Every key in the sequence must have a raw value in `0..<maxSize`.
     @inlinable
     public init<S>(uniqueKeysWithValues keysAndValues: S) where S: Sequence, S.Element == (key: Key, value: Value) {
-        let sorted = keysAndValues.sorted { $0.key.scalarIndex < $1.key.scalarIndex }
-        precondition(
-            sorted.count == size,
-            "InlineMap<\(size), \(Key.self), \(Value.self)> requires exactly \(size) entries, but \(sorted.count) were given."
-        )
-        self.storage = .init(initializingWith: { span in
-            var i = 0
-            for (key, value) in sorted {
-                precondition(
-                    Int(key.scalarIndex) == i,
-                    "InlineMap<\(size), \(Key.self), \(Value.self)> requires exactly one entry for each raw value in 0..<\(size), but found \(key.scalarIndex) at position \(i)."
-                )
-                span.append(value)
-                i += 1
-            }
-        })
+        self.init()
+        for (key, value) in keysAndValues {
+            let index = key.scalarIndex
+            precondition(
+                index < maxSize,
+                "InlineMap with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
+            )
+            precondition(
+                storage[index] == nil,
+                "Duplicate values for key: '\(key)'."
+            )
+            storage[index] = value
+        }
     }
 }
 
@@ -135,7 +124,20 @@ extension InlineMap {
     /// The number of key-value pairs in the map.
     @inlinable
     public var count: Int {
-        storage.count
+        var count = 0
+        for i in 0..<maxSize where storage[i] != nil {
+            count += 1
+        }
+        return count
+    }
+
+    /// Whether the map has no key-value pairs.
+    @inlinable
+    public var isEmpty: Bool {
+        for i in 0..<maxSize where storage[i] != nil {
+            return false
+        }
+        return true
     }
 }
 
@@ -143,18 +145,47 @@ extension InlineMap {
 // MARK: - Subscript
 
 extension InlineMap {
-    /// Gets or sets the value associated with the given key.
+    /// Gets or sets the value associated with the given key, or `nil` if the key is absent.
     ///
-    /// - Precondition: The key must have a raw value in `0..<size`
+    /// - Precondition: The key must have a raw value in `0..<maxSize`.
     @inlinable
-    public subscript(_ key: Key) -> Value {
+    public subscript(key: Key) -> Value? {
         _read {
-            precondition(key.scalarIndex < size, "\(key) has raw value \(key.rawValue), which is outside 0..<\(size).")
-            yield storage[key.scalarIndex]
+            let index = key.scalarIndex
+            precondition(
+                index < maxSize,
+                "InlineMap with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
+            )
+            yield storage[index]
         }
         _modify {
-            precondition(key.scalarIndex < size, "\(key) has raw value \(key.rawValue), which is outside 0..<\(size).")
-            yield &storage[key.scalarIndex]
+            let index = key.scalarIndex
+            precondition(
+                index < maxSize,
+                "InlineMap with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
+            )
+            yield &storage[index]
+        }
+    }
+
+    /// Gets or sets the value associated with the given key, falling back to the given default value if the key isn’t found.
+    ///
+    /// - Precondition: The key must have a raw value in `0..<maxSize`.
+    @inlinable
+    public subscript(key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
+        get {
+            self[key] ?? defaultValue()
+        }
+        _modify {
+            let index = key.scalarIndex
+            precondition(
+                index < maxSize,
+                "InlineMap with maxSize \(maxSize) can't contain '\(key)' with raw value \(key.rawValue)."
+            )
+            if storage[index] == nil {
+                storage[index] = defaultValue()
+            }
+            yield &storage[index]!
         }
     }
 }
@@ -182,25 +213,79 @@ extension InlineMap: Collection {
 
     @inlinable
     public var startIndex: Index {
-        Index(wrapped: storage.startIndex)
+        Index(wrapped: firstOccupiedSlot(after: -1))
     }
 
     @inlinable
     public var endIndex: Index {
-        Index(wrapped: storage.endIndex)
+        Index(wrapped: maxSize)
     }
 
     @inlinable
     public subscript(index: Index) -> Element {
-        precondition(index.wrapped >= storage.startIndex, "Index out of bounds")
-        precondition(index.wrapped < storage.endIndex, "Index out of bounds")
-        return (Key(rawValue: UInt(index.wrapped))!, storage[index.wrapped])
+        precondition(index.wrapped >= 0, "Index out of bounds")
+        precondition(index.wrapped < maxSize, "Index out of bounds")
+        guard let value = storage[index.wrapped] else {
+            preconditionFailure("Index does not refer to an entry in the map")
+        }
+        return (Key(rawValue: UInt(index.wrapped))!, value)
     }
 
     @inlinable
     public func index(after index: Index) -> Index {
-        precondition(index.wrapped < storage.endIndex, "Can't advance past endIndex")
-        return Index(wrapped: index.wrapped + 1)
+        precondition(index.wrapped >= 0, "Index out of bounds")
+        precondition(index.wrapped <= maxSize, "Index out of bounds")
+        let slot = firstOccupiedSlot(after: index.wrapped)
+        precondition(slot <= maxSize, "Can't get the index after endIndex")
+        return Index(wrapped: slot)
+    }
+}
+
+extension InlineMap: BidirectionalCollection {
+    @inlinable
+    public func index(before index: Index) -> Index {
+        precondition(index.wrapped >= 0, "Index out of bounds")
+        precondition(index.wrapped <= maxSize, "Index out of bounds")
+        let slot = lastOccupiedSlot(before: index.wrapped)
+        precondition(slot >= 0, "Can't get the index before startIndex")
+        return Index(wrapped: slot)
+    }
+}
+
+extension InlineMap {
+    @inlinable
+    internal func firstOccupiedSlot(after start: Int) -> Int {
+        var i = start
+        repeat {
+            i += 1
+        } while i < maxSize && storage[i] == nil
+        return i
+    }
+
+    @inlinable
+    internal func lastOccupiedSlot(before start: Int) -> Int {
+        var i = start
+        repeat {
+            i -= 1
+        } while i >= 0 && storage[i] == nil
+        return i
+    }
+}
+
+
+// MARK: - Keys and values
+
+extension InlineMap {
+    /// The keys present in the map, in ascending order of raw value.
+    @inlinable
+    public var keys: some Collection<Key> {
+        lazy.map(\.key)
+    }
+
+    /// The values present in the map, in ascending order of their key's raw value.
+    @inlinable
+    public var values: some Collection<Value> {
+        lazy.map(\.value)
     }
 }
 
@@ -211,10 +296,32 @@ extension InlineMap {
     /// Returns a new inline map containing the keys of this map with the
     /// values transformed by the given closure.
     @inlinable
-    public func mapValues<T>(_ transform: (Value) -> T) -> InlineMap<size, Key, T> {
-        InlineMap<size, Key, T>(
+    public func mapValues<T>(_ transform: (Value) -> T) -> InlineMap<maxSize, Key, T> {
+        InlineMap<maxSize, Key, T>(
             storage: .init({ i in
-                transform(self.storage[i])
+                self.storage[i].map(transform)
             }))
+    }
+
+    /// Returns a new inline map containing the entries of this map for which
+    /// the given closure returns a value, with the values transformed by the closure.
+    @inlinable
+    public func compactMapValues<T>(_ transform: (Value) -> T?) -> InlineMap<maxSize, Key, T> {
+        InlineMap<maxSize, Key, T>(
+            storage: .init({ i in
+                self.storage[i].flatMap(transform)
+            }))
+    }
+
+    /// Returns a new inline map containing the entries that satisfy the given predicate.
+    @inlinable
+    public func filter(_ isIncluded: (Element) -> Bool) -> Self {
+        var result = Self()
+        for i in 0..<maxSize {
+            if let value = storage[i], isIncluded((Key(rawValue: UInt(i))!, value)) {
+                result.storage[i] = value
+            }
+        }
+        return result
     }
 }
