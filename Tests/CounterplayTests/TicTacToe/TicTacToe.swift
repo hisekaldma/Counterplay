@@ -1,6 +1,6 @@
 import Counterplay
 
-struct TicTacToe: Game {
+struct TicTacToe: GameModel {
     let players: [Player]
     private(set) var board: [[Player?]]
     private(set) var currentPlayer: Player

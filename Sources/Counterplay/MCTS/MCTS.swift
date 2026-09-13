@@ -1,7 +1,5 @@
 import Foundation
 
-public typealias GameModel = Game
-
 /// An object that finds the best move in a game using Monte Carlo Tree Search.
 ///
 /// The algorithm searches from a single root game state, building out a search tree
@@ -460,7 +458,7 @@ extension MCTS.Node {
 
 // MARK: - Extensions
 
-extension Game {
+extension GameModel {
     @inlinable
     internal func outcomeRewards() -> SIMD8<Double> {
         var rewards: SIMD8<Double> = .zero
