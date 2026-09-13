@@ -526,7 +526,7 @@ struct MCTSTests {
 }
 
 /// A game that finishes after X turns, with exactly one legal move per turn.
-private struct DeepGame: Game {
+private struct DeepGame: GameModel {
     enum Player: UInt, Hashable, SmallRawUInt8 { case player1 }
     enum Move: Sendable, Hashable { case pass }
 
@@ -543,7 +543,7 @@ private struct DeepGame: Game {
 
 
 /// A game that never finishes, with exactly one legal move per turn until turn X, after which there are no legal moves.
-private struct InvalidGame: Game {
+private struct InvalidGame: GameModel {
     enum Player: UInt, Hashable, SmallRawUInt8 { case player1 }
     enum Move: Sendable, Hashable { case pass }
 

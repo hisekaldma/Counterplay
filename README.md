@@ -36,7 +36,7 @@ To use Counterplay, implement the rules of your game as a struct that represents
 ```swift
 import Counterplay
 
-struct TicTacToe: Game {
+struct TicTacToe: GameModel {
     enum Player: UInt, Hashable, SmallRawUInt8 {
         case x, o
     }
@@ -112,16 +112,16 @@ let move = try MCTS.bestMove(for: game, budget: .iterations(1_000))
 
 ## Modeling your game
 
-### The `Game` protocol
+### The `GameModel` protocol
 
-Model your game as a value type that conforms to the `Game` protocol. The protocol covers everything MCTS needs to play your game: who the players are, whose turn it is, what moves are available, how a move changes the state, when the game is over, and who wins/loses.
+Model your game as a value type that conforms to the `GameModel` protocol. The protocol covers everything MCTS needs to play your game: who the players are, whose turn it is, what moves are available, how a move changes the state, when the game is over, and who wins/loses.
 
 ```swift
 enum Player: UInt, Hashable, SmallRawUInt8 {
     case blue, red, green, yellow
 }
 
-struct CardGame: Game {
+struct CardGame: GameModel {
     enum Move: Sendable, Hashable {
         case playCard(Card)
         case drawCard

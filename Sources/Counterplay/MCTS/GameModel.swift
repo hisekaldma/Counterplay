@@ -13,7 +13,7 @@
 /// - `outcome(for:)` must return `.estimate(_)` when the game is in progress and
 ///   one of `.win`, `.loss`, or `.tie` when `isFinished` is `true`.
 /// - `obscure()` must not change `currentPlayer` or `possibleMoves`.
-public nonisolated protocol Game: Sendable {
+public nonisolated protocol GameModel: Sendable {
     /// A representation of a player in the game.
     associatedtype Player: Hashable, SmallRawUInt8
 
@@ -75,7 +75,7 @@ public nonisolated protocol Game: Sendable {
     func outcome(for player: Player) -> Outcome
 }
 
-extension Game {
+extension GameModel {
     /// Returns the updated game state that results from making the given move for the current player.
     public func makingMove(_ move: Move) -> Self {
         var copy = self
@@ -96,7 +96,7 @@ extension Game {
 
 // MARK: - Player order
 
-extension Game {
+extension GameModel {
     /// Returns the player after the current player, wrapping around to the start of the player order if necessary.
     ///
     /// Typically used to find the next player to pass the turn to. For example:
