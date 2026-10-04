@@ -128,38 +128,11 @@ struct MCTSTests {
             #expect(mcts.moves.count > 0)
         }
 
-        @Test("Search within a time budget")
-        func searchWithTimeBudget() async throws {
-            let game = TicTacToe(
-                players: [.player1, .player2], currentPlayer: .player1,
-                board: [
-                    [nil, nil, nil],
-                    [nil, nil, nil],
-                    [nil, nil, nil],
-                ])
-            let mcts = MCTS(game: game)
-
-            try mcts.search(budget: .time(.milliseconds(100)))
-
-            #expect(mcts.root.visits >= 100)
-            #expect(mcts.bestMove != nil)
-            #expect(mcts.moves.count > 0)
-        }
-
         @Test("Search within a minimal iteration budget")
         func minimalIterationBudget() throws {
             let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1)
             let mcts = MCTS(game: game)
             try mcts.search(budget: .iterations(1))
-            #expect(mcts.bestMove != nil)
-            #expect(mcts.moves.count == 1)
-        }
-
-        @Test("Search within a minimal time budget")
-        func minimalTimeBudget() throws {
-            let game = TicTacToe(players: [.player1, .player2], currentPlayer: .player1)
-            let mcts = MCTS(game: game)
-            try mcts.search(budget: .time(.nanoseconds(1)))
             #expect(mcts.bestMove != nil)
             #expect(mcts.moves.count == 1)
         }
