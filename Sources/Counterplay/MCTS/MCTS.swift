@@ -28,8 +28,8 @@ public final class MCTS<Game> where Game: GameModel {
     /// The parameters that the search runs with.
     public let configuration: MCTSConfiguration
 
-    /// The root node of the search tree.
-    @usableFromInline internal let root: Node
+    /// The search tree.
+    @usableFromInline internal var tree: Tree<Node>
 
     /// Creates a new MCTS instance for the given game state.
     ///
@@ -45,18 +45,12 @@ public final class MCTS<Game> where Game: GameModel {
     ) {
         precondition(!game.isFinished, "The game must not be finished")
         self.configuration = configuration
-        self.root = Node(game: game)
+        self.tree = Tree(root: Node(game: game, move: nil))
     }
 
-    deinit {
-        // Tear the tree down iteratively. Releasing the root would otherwise
-        // recurse once per level, overflowing the stack on deep trees.
-        var pending: [Node] = [root]
-        while let node = pending.popLast() {
-            pending.append(contentsOf: node.children)
-            node.children = []
-        }
-    }
+    /// The root node of the search tree.
+    @inlinable
+    internal var root: Node { tree[tree.root] }
 }
 
 
@@ -255,9 +249,16 @@ extension MCTS {
     /// Non-`nil` once `search(budget:)` has completed at least once.
     @inlinable
     public var bestMove: Game.Move? {
-        root.children
-            .max(by: { $0.visits < $1.visits })?
-            .move
+        var bestMove: Game.Move? = nil
+        var bestVisits = Int.min
+        tree.forEachChild(of: tree.root) { child in
+            let visits = tree[child].visits
+            if visits > bestVisits {
+                bestVisits = visits
+                bestMove = tree[child].move
+            }
+        }
+        return bestMove
     }
 
     /// Visit counts for each possible move for the current player.
@@ -265,9 +266,13 @@ extension MCTS {
     /// The higher the visit count, the better the move.
     @inlinable
     public var moves: [(move: Game.Move, visits: Int)] {
-        root.children.compactMap { child in
-            child.move.map { ($0, child.visits) }
+        var moves: [(move: Game.Move, visits: Int)] = []
+        tree.forEachChild(of: tree.root) { child in
+            if let move = tree[child].move {
+                moves.append((move, tree[child].visits))
+            }
         }
+        return moves
     }
 }
 
@@ -329,15 +334,15 @@ extension MCTS {
     internal func iterate() throws(GameError<Game>) {
         // Perform one select-expand-playout-backpropagate iteration
         let leaf = select()
-        let child = leaf.game.isFinished ? leaf : try leaf.expand()
-        let rewards = try child.playout(maxPlayoutDepth: configuration.maxPlayoutDepth)
-        child.backpropagate(rewards: rewards)
+        let child = tree[leaf].game.isFinished ? leaf : try expand(leaf)
+        let rewards = try playout(from: child)
+        backpropagate(rewards, from: child)
     }
 
     @inlinable
-    internal func select() -> Node {
-        var node = root
-        while node.untriedMoves.isEmpty, let child = node.bestChild(explorationBias: configuration.explorationBias) {
+    internal func select() -> Tree<Node>.Index {
+        var node = tree.root
+        while tree[node].untriedMoves.isEmpty, let child = bestChild(of: node) {
             node = child
         }
         return node
@@ -348,9 +353,8 @@ extension MCTS {
 // MARK: - Node
 
 extension MCTS {
-    @usableFromInline internal final class Node {
-        @usableFromInline internal unowned let parent: Node?
-        @usableFromInline internal var children: [Node] = []
+    /// The per-node state of the search tree.
+    @usableFromInline internal struct Node {
         @usableFromInline internal let move: Game.Move?
         @usableFromInline internal let game: Game
         @usableFromInline internal var untriedMoves: [Game.Move]
@@ -358,17 +362,7 @@ extension MCTS {
         @usableFromInline internal var visits: Int = 0
 
         @inlinable
-        internal init(game: Game) {
-            self.parent = nil
-            self.move = nil
-            self.game = game
-            self.untriedMoves = game.possibleMoves
-        }
-
-        @inlinable
-        internal init(parent: Node, move: Game.Move) {
-            let game = parent.game.makingMove(move)
-            self.parent = parent
+        internal init(game: Game, move: Game.Move?) {
             self.move = move
             self.game = game
             self.untriedMoves = game.possibleMoves
@@ -376,40 +370,46 @@ extension MCTS {
     }
 }
 
-extension MCTS.Node {
+extension MCTS {
     @inlinable
-    internal var path: [Game.Move] {
-        var path = sequence(first: self, next: \.parent).compactMap(\.move)
+    internal func path(to node: Tree<Node>.Index) -> [Game.Move] {
+        var path: [Game.Move] = []
+        var next: Tree<Node>.Index? = node
+        while let current = next {
+            if let move = tree[current].move {
+                path.append(move)
+            }
+            next = tree.parent(of: current)
+        }
         path.reverse()
         return path
     }
 
     @inlinable
-    internal func expand() throws(GameError<Game>) -> MCTS.Node {
+    internal func expand(_ parent: Tree<Node>.Index) throws(GameError<Game>) -> Tree<Node>.Index {
         // There must be possible moves, unless the game is finished
-        if untriedMoves.isEmpty {
-            throw .noPossibleMoves(after: path)
+        if tree[parent].untriedMoves.isEmpty {
+            throw .noPossibleMoves(after: path(to: parent))
         }
 
         // Choose a random untried move
-        let count = untriedMoves.count
-        untriedMoves.swapAt(Int.random(in: 0..<count), count - 1)
-        let move = untriedMoves.removeLast()
+        let count = tree[parent].untriedMoves.count
+        tree[parent].untriedMoves.swapAt(Int.random(in: 0..<count), count - 1)
+        let move = tree[parent].untriedMoves.removeLast()
 
         // Expand that move
-        let childNode = MCTS.Node(parent: self, move: move)
-        children.append(childNode)
-        return childNode
+        let game = tree[parent].game.makingMove(move)
+        return tree.addChild(Node(game: game, move: move), to: parent)
     }
 
     @inlinable
-    internal func playout(maxPlayoutDepth: Int) throws(GameError<Game>) -> SIMD8<Double> {
+    internal func playout(from node: Tree<Node>.Index) throws(GameError<Game>) -> SIMD8<Double> {
         var depth = 0
-        var game = game
+        var game = tree[node].game
         var moves: [Game.Move] = []
-        while !game.isFinished && depth < maxPlayoutDepth {
+        while !game.isFinished && depth < configuration.maxPlayoutDepth {
             guard let move = game.possibleMoves.randomElement() else {
-                throw .noPossibleMoves(after: path + moves)
+                throw .noPossibleMoves(after: path(to: node) + moves)
             }
             moves.append(move)
             game.makeMove(move)
@@ -419,23 +419,24 @@ extension MCTS.Node {
     }
 
     @inlinable
-    internal func backpropagate(rewards: SIMD8<Double>) {
-        var next: MCTS.Node? = self
-        while let node = next {
-            node.rewards += rewards
-            node.visits += 1
-            next = node.parent
+    internal func backpropagate(_ rewards: SIMD8<Double>, from node: Tree<Node>.Index) {
+        var next: Tree<Node>.Index? = node
+        while let current = next {
+            tree[current].rewards += rewards
+            tree[current].visits += 1
+            next = tree.parent(of: current)
         }
     }
 
     @inlinable
-    internal func bestChild(explorationBias: Double) -> MCTS.Node? {
-        let player = game.currentPlayer
-        let parentVisits = visits
-        var bestChild: MCTS.Node? = nil
+    internal func bestChild(of parent: Tree<Node>.Index) -> Tree<Node>.Index? {
+        let player = tree[parent].game.currentPlayer
+        let parentVisits = tree[parent].visits
+        let explorationBias = configuration.explorationBias
+        var bestChild: Tree<Node>.Index? = nil
         var bestUCB = -Double.infinity
-        for child in children {
-            let ucb = child.ucb(for: player, parentVisits: parentVisits, explorationBias: explorationBias)
+        tree.forEachChild(of: parent) { child in
+            let ucb = tree[child].ucb(for: player, parentVisits: parentVisits, explorationBias: explorationBias)
             if ucb > bestUCB {
                 bestUCB = ucb
                 bestChild = child
@@ -443,7 +444,9 @@ extension MCTS.Node {
         }
         return bestChild
     }
+}
 
+extension MCTS.Node {
     @inlinable
     internal func ucb(for player: Game.Player, parentVisits: Int, explorationBias: Double) -> Double {
         guard visits > 0 else { return .infinity }

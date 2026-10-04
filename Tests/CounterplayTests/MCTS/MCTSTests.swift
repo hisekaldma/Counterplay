@@ -500,47 +500,7 @@ struct MCTSTests {
             }
         }
     }
-
-    @Suite("Teardown")
-    struct Teardown {
-        @Test("Releasing a deep tree doesn't overflow the stack")
-        func deepTreeTeardown() async throws {
-            await #expect(processExitsWith: .success) {
-                await withCheckedContinuation { continuation in
-                    let thread = Thread {
-                        let depth = 2000
-                        let mcts = MCTS(
-                            game: DeepGame(turnsLeft: depth),
-                            configuration: .init(maxPlayoutDepth: 0)
-                        )
-                        try! mcts.search(budget: .iterations(depth))
-                        _ = consume mcts // Release the search tree
-                        continuation.resume()
-                    }
-                    thread.stackSize = 64 * 4_096
-                    thread.start()
-                }
-            }
-        }
-    }
 }
-
-/// A game that finishes after X turns, with exactly one legal move per turn.
-private struct DeepGame: GameModel {
-    enum Player: UInt, Hashable, SmallRawUInt8 { case player1 }
-    enum Move: Sendable, Hashable { case pass }
-
-    let players: [Player] = [.player1]
-    let currentPlayer: Player = .player1
-    var turnsLeft: Int
-
-    var possibleMoves: [Move] { isFinished ? [] : [.pass] }
-    mutating func makeMove(_ move: Move) { turnsLeft -= 1 }
-    mutating func obscure() {}
-    var isFinished: Bool { turnsLeft == 0 }
-    func outcome(for player: Player) -> Outcome { isFinished ? .win : .estimate(0.5) }
-}
-
 
 /// A game that never finishes, with exactly one legal move per turn until turn X, after which there are no legal moves.
 private struct InvalidGame: GameModel {
